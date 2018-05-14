@@ -1,8 +1,8 @@
 package io.gitlab.leibnizhu.vertXearch
 
 
+import io.gitlab.leibnizhu.vertXearch.Constants._
 import io.vertx.core.{AsyncResult, Future, Handler}
-import io.vertx.lang.scala.AsyncResultWrapper
 import org.apache.lucene.search.highlight._
 
 import scala.util.Try
@@ -51,7 +51,7 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     * @param searchQuery 查找关键词
     * @return 匹配的文档,按相关度降序
     */
-  override def search(searchQuery: String, length: Int, callback: Handler[AsyncResult[List[SearchResult]]]): Unit = {
+  override def search(searchQuery: String, length: Int, callback: Handler[AsyncResult[List[Article]]]): Unit = {
     val trySearch = Try({
       val (query,docs) = searcher.search(searchQuery, length)
       //设置高亮格式//设置高亮格式
@@ -60,14 +60,17 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
       highlighter.setTextFragmenter(fragmenter)
       docs.map(doc => {
         //这里的.replaceAll("\\s*", "")是必须的，\r\n这样的空白字符会导致高亮标签错位
-        val content = doc.get(Constants.CONTENTS).replaceAll("\\s*", "")
-        //没有高亮字符会返回null
-        val highContext = highlighter.getBestFragment(Constants.analyzer, Constants.CONTENTS, content)
-        val title = doc.get(Constants.TITLE).replaceAll("\\s*", "")
-        val highTitle = highlighter.getBestFragment(Constants.analyzer, Constants.TITLE, title)
-        SearchResult(null, //FIXME 要在建立索引的时候定义ID,可能是根据文章本身的格式
-          if (highTitle == null) title else highTitle,
-          if (highContext == null) subContext(content) else highContext)
+        val id = doc.get(ID)
+        val content = doc.get(CONTENTS).replaceAll("\\s*", "")
+        val highContext = highlighter.getBestFragment(analyzer, CONTENTS, content)
+        val title = doc.get(TITLE).replaceAll("\\s*", "")
+        val highTitle = highlighter.getBestFragment(analyzer, TITLE, title)
+        val author = doc.get(AUTHOR).replaceAll("\\s*", "")
+        val highAuthor = highlighter.getBestFragment(analyzer, AUTHOR, author)
+        Article(id,
+          Option(highTitle).getOrElse(title),
+          Option(highAuthor).getOrElse(author),
+          Option(highContext).getOrElse(subContext(content)))
       })
     })
     if(trySearch.isSuccess){
@@ -84,7 +87,7 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     * @return
     */
   private def subContext(content: String) =
-    if (content.length > Constants.FRAGMENT_SIZE) content.substring(0, Constants.FRAGMENT_SIZE) else content
+    if (content.length > FRAGMENT_SIZE) content.substring(0, FRAGMENT_SIZE) else content
 
   /**
     * 关闭搜索引擎

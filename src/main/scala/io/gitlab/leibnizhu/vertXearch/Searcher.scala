@@ -11,7 +11,7 @@ class Searcher(indexDirectoryPath: String) {
 
   private val indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath))
   var indexSearcher = new IndexSearcher(DirectoryReader.open(indexDirectory))
-  var queryParser = new MultiFieldQueryParser(Array(Constants.TITLE,Constants.CONTENTS), Constants.analyzer)
+  var queryParser = new MultiFieldQueryParser(Array(Constants.TITLE,Constants.CONTENTS, Constants.AUTHOR), Constants.analyzer)
 
   var reader: DirectoryReader=_
 

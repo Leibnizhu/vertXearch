@@ -29,7 +29,6 @@ object LuceneTester {
         handler.handle(numIndexed)
       }
     })
-
   }
 
   private def search(searchQuery: String): Unit = {
@@ -39,7 +38,7 @@ object LuceneTester {
     val endTime = System.currentTimeMillis
     println(hitDocs.size + " documents found. Time :" + (endTime - startTime))
     for (doc <- hitDocs) {
-      println("File: " + doc.get(Constants.ARTICLE_PATH))
+      println("File: " + doc.get(Constants.ID))
     }
     searcher.close()
   }

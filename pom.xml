@@ -68,11 +68,12 @@
 
         <!-- 测试依赖 -->
         <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <version>2.4.13</version>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_2.12</artifactId>
+            <version>3.0.5</version>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -199,26 +200,6 @@
                                 ${project.build.directory}/lib
                             </outputDirectory>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- groovy测试脚本用 -->
-            <plugin>
-                <groupId>org.codehaus.gmaven</groupId>
-                <artifactId>gmaven-plugin</artifactId>
-                <version>1.4</version>
-                <configuration>
-                    <providerSelection>1.8</providerSelection>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generateStubs</goal>
-                            <goal>compile</goal>
-                            <goal>generateTestStubs</goal>
-                            <goal>testCompile</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>

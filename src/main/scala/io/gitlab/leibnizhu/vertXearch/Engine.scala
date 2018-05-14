@@ -31,7 +31,7 @@ trait Engine {
     * @param searchQuery 查找关键词
     * @param callback 查询成功后的回调方法, 处理内容为 匹配的文档,按相关度降序
     */
-  def search(searchQuery: String, length: Int, callback: Handler[AsyncResult[List[SearchResult]]]): Unit
+  def search(searchQuery: String, length: Int, callback: Handler[AsyncResult[List[Article]]]): Unit
 
   /**
     * 关闭搜索引擎

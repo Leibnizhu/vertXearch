@@ -3,6 +3,7 @@ package io.gitlab.leibnizhu.vertXearch
 import java.io.File
 import java.nio.file.Paths
 
+import io.gitlab.leibnizhu.vertXearch.Constants._
 import io.vertx.core.{AsyncResult, Future, Handler}
 import io.vertx.scala.core.CompositeFuture
 import org.apache.lucene.document._
@@ -14,7 +15,7 @@ import org.slf4j.LoggerFactory
 class Indexer(indexDirectoryPath: String) {
   private val log = LoggerFactory.getLogger(getClass)
   private val indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath))
-  private val writer: IndexWriter = new IndexWriter(indexDirectory, new IndexWriterConfig(Constants.analyzer))
+  private val writer: IndexWriter = new IndexWriter(indexDirectory, new IndexWriterConfig(analyzer))
 
   def close(): Unit = {
     writer.close()
@@ -22,7 +23,7 @@ class Indexer(indexDirectoryPath: String) {
 
   def createIndex(dataDirPath: String, callback: Handler[AsyncResult[Int]]): Unit = {
     CompositeFuture.all(new File(dataDirPath).listFiles
-      .filter(file => !file.isDirectory && !file.isHidden && file.exists && file.canRead)
+      .filter(file => !file.isDirectory && file.exists && file.canRead && file.getName.endsWith(".txt"))
       .map(file => {
         val future:io.vertx.scala.core.Future[Boolean] = io.vertx.scala.core.Future.future()
         indexFile(file, future.completer())
@@ -46,15 +47,18 @@ class Indexer(indexDirectoryPath: String) {
   }
 
   private def readDocument(file: File, callback: Handler[Document]): Unit = {
-    Constants.vertx.fileSystem().readFile(file.getAbsolutePath, res => {
-      if (res.succeeded()) {
+    Article.fromFile(file, ar => {
+      if(ar.succeeded()){
+        val article = ar.result()
+        log.info(s"读取到文章(ID=${article.id}, 标题=${article.title})")
         val document = new Document
-        document.add(new TextField(Constants.CONTENTS, res.result().toString, Field.Store.YES))
-        document.add(new TextField(Constants.TITLE, file.getName, Field.Store.YES))
-        document.add(new StringField(Constants.ARTICLE_PATH, file.getCanonicalPath, Field.Store.YES))
+        document.add(new Field(ID, article.id, FieldTypeFactory.storedNotIndexed))//ID不参与索引
+        document.add(new TextField(TITLE, article.title, Field.Store.YES))
+        document.add(new Field(AUTHOR, article.author, FieldTypeFactory.storedNotAnalyzed))//作者不需要分词
+        document.add(new TextField(CONTENTS, article.content.toString, Field.Store.YES))
         callback.handle(document)
       } else {
-        log.error("读取文章文件失败.", res.cause())
+        log.error("读取文章文件失败.", ar.cause())
       }
     })
   }

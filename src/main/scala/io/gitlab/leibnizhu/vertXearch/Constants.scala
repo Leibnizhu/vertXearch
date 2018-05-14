@@ -16,12 +16,16 @@ object Constants {
 
   def articlePath():String = vertxContext.config().get.getString("articlePath", "articles")
 
-  val CONTENTS: String = "contents"
+  val ID: String = "id"
   val TITLE: String = "title"
-  val ARTICLE_PATH: String = "articlePath"
+  val AUTHOR:String = "author"
+  val CONTENTS: String = "contents"
+
   val MAX_SEARCH: Int = 30 //单次搜索默认最大返回文章个数
   val FRAGMENT_SIZE:Int = 150 //片段最大长度
   val MAX_HIGHLIGHTER:Int = 10 //最多的高亮次数
+
+  val LINE_SEPARATOR:String = System.getProperty("line.separator", "\n")
 
   val analyzer: HanLPAnalyzer = new HanLPAnalyzer
 }
