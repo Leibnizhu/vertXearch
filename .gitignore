@@ -4,6 +4,7 @@ target/
 **/.vscode/
 **/file-uploads/
 !.mvn/wrapper/maven-wrapper.jar
+indexes/
 
 ### STS ###
 .apt_generated
