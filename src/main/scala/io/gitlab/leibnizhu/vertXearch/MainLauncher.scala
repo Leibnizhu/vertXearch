@@ -12,15 +12,20 @@ object MainLauncher {
     System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory")
     System.setProperty("vertx.disableFileCaching", "true")
     val vertx = Vertx.vertx
-    vertx.fileSystem().readFile(args(1), res => {
-      if (res.succeeded()) {
-        vertx.deployVerticle(s"scala:${classOf[MainVerticle].getName}",
-          DeploymentOptions().setConfig(new JsonObject(res.result())))
-      } else {
-        log.error("读取配置文件失败", res.cause())
-        System.exit(1)
-      }
-    })
+    if(args.length == 1){
+      vertx.fileSystem().readFile(args(1), res => {
+        if (res.succeeded()) {
+          log.error("读取配置文件成功,准备启动Verticle.")
+          vertx.deployVerticle(s"scala:${classOf[MainVerticle].getName}",
+            DeploymentOptions().setConfig(new JsonObject(res.result())))
+        } else {
+          log.error("读取配置文件失败.", res.cause())
+          System.exit(1)
+        }
+      })
+    } else {
+      vertx.deployVerticle(s"scala:${classOf[MainVerticle].getName}")
+    }
   }
 }
 

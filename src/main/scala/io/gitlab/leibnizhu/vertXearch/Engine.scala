@@ -8,16 +8,24 @@ trait Engine {
   /**
     * 对源目录下所有可用文件进行索引构建
     *
-    * @return 索引的文件数量
+    * @return 增加索引的文件数量
     */
   def createIndex(): Int
 
   /**
     * 对源目录下所有可用文件进行索引更新
     *
-    * @return 索引的文件数量
+    * @return 更新索引的文件数量
     */
   def refreshIndex(): Int
+
+  /**
+    * 启动文章更新定时器
+    *
+    * @param interval 定时间隔
+    * @param callback 回调方法
+    */
+  def startRefreshTimer(interval: Long, callback: Handler[AsyncResult[Boolean]]):Unit
 
   /**
     * 按指定关键词进行查找
