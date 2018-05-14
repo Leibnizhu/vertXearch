@@ -1,4 +1,6 @@
 package io.gitlab.leibnizhu.vertXearch
+import io.vertx.core.Handler
+import io.vertx.scala.core.Vertx
 
 object LuceneTester {
 
@@ -8,28 +10,35 @@ object LuceneTester {
   var searcher: Searcher = _
 
   def main(args: Array[String]) {
-//    LuceneTester.createIndex()
-    LuceneTester.search("编译")
+    Constants.init(Vertx.vertx().getOrCreateContext())
+    LuceneTester.createIndex(num => {
+      LuceneTester.search("编译")
+    })
   }
 
-  private def createIndex(): Unit = {
+  private def createIndex(handler: Handler[Int]): Unit = {
     indexer = new Indexer(indexDir)
     var numIndexed = 0
     val startTime = System.currentTimeMillis
-    numIndexed = indexer.createIndex(dataDir)
-    val endTime = System.currentTimeMillis
-    indexer.close()
-    println(numIndexed + " File indexed, time taken: " + (endTime - startTime) + " ms")
+    indexer.createIndex(dataDir, res => {
+      if(res.succeeded()){
+        numIndexed = res.result()
+        val endTime = System.currentTimeMillis
+        println(numIndexed + " File indexed, time taken: " + (endTime - startTime) + " ms")
+        indexer.close()
+        handler.handle(numIndexed)
+      }
+    })
+
   }
 
   private def search(searchQuery: String): Unit = {
     searcher = new Searcher(indexDir)
     val startTime = System.currentTimeMillis
-    val hits = searcher.search(searchQuery)
+    val (query, hitDocs) = searcher.search(searchQuery)
     val endTime = System.currentTimeMillis
-    println(hits.totalHits + " documents found. Time :" + (endTime - startTime))
-    for (scoreDoc <- hits.scoreDocs) {
-      val doc = searcher.getDocument(scoreDoc)
+    println(hitDocs.size + " documents found. Time :" + (endTime - startTime))
+    for (doc <- hitDocs) {
       println("File: " + doc.get(Constants.ARTICLE_PATH))
     }
     searcher.close()

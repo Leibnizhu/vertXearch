@@ -11,13 +11,13 @@ class Searcher(indexDirectoryPath: String) {
 
   private val indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath))
   var indexSearcher = new IndexSearcher(DirectoryReader.open(indexDirectory))
-  var queryParser = new MultiFieldQueryParser(Array(Constants.TITLE,Constants.CONTENTS,Constants.ARTICLE_PATH),Constants.analyzer)
+  var queryParser = new MultiFieldQueryParser(Array(Constants.TITLE,Constants.CONTENTS), Constants.analyzer)
 
   var reader: DirectoryReader=_
 
-  def search(searchQuery: String): TopDocs = {
+  def search(searchQuery: String, length: Int = Constants.MAX_SEARCH): (Query, List[Document]) = {
     val query = queryParser.parse(searchQuery.toLowerCase)
-    indexSearcher.search(query, Constants.MAX_SEARCH)
+    (query, indexSearcher.search(query, length).scoreDocs.map(this.getDocument).toList)
   }
 
   def getDocument(scoreDoc: ScoreDoc): Document = indexSearcher.doc(scoreDoc.doc)

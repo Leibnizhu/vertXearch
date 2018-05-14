@@ -1,7 +1,5 @@
 package io.gitlab.leibnizhu.vertXearch
 
-import java.util
-
 import io.vertx.core.{AsyncResult, Handler}
 
 trait Engine {
@@ -10,7 +8,7 @@ trait Engine {
     *
     * @return 增加索引的文件数量
     */
-  def createIndex(): Int
+  def createIndex(): Unit
 
   /**
     * 对源目录下所有可用文件进行索引更新
@@ -33,7 +31,7 @@ trait Engine {
     * @param searchQuery 查找关键词
     * @param callback 查询成功后的回调方法, 处理内容为 匹配的文档,按相关度降序
     */
-  def search(searchQuery: String, callback: Handler[AsyncResult[util.List[SearchResult]]]): Unit
+  def search(searchQuery: String, length: Int, callback: Handler[AsyncResult[List[SearchResult]]]): Unit
 
   /**
     * 关闭搜索引擎

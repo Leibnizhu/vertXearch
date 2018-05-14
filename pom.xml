@@ -64,7 +64,6 @@
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-highlighter</artifactId>
             <version>${lucene.version}</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- 测试依赖 -->

@@ -19,7 +19,9 @@ object Constants {
   val CONTENTS: String = "contents"
   val TITLE: String = "title"
   val ARTICLE_PATH: String = "articlePath"
-  val MAX_SEARCH: Int = 10
+  val MAX_SEARCH: Int = 30 //单次搜索默认最大返回文章个数
+  val FRAGMENT_SIZE:Int = 150 //片段最大长度
+  val MAX_HIGHLIGHTER:Int = 10 //最多的高亮次数
 
   val analyzer: HanLPAnalyzer = new HanLPAnalyzer
 }

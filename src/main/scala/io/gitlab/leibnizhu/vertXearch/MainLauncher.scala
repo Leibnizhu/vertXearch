@@ -13,9 +13,10 @@ object MainLauncher {
     System.setProperty("vertx.disableFileCaching", "true")
     val vertx = Vertx.vertx
     if(args.length == 1){
-      vertx.fileSystem().readFile(args(1), res => {
+      val configFile = args(0)
+      vertx.fileSystem().readFile(configFile, res => {
         if (res.succeeded()) {
-          log.error("读取配置文件成功,准备启动Verticle.")
+          log.info("读取配置文件{}成功,准备启动Verticle.", configFile)
           vertx.deployVerticle(s"scala:${classOf[MainVerticle].getName}",
             DeploymentOptions().setConfig(new JsonObject(res.result())))
         } else {
