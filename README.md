@@ -30,6 +30,7 @@ mvn clean && mvn package
 ```bash
 java -jar target/vertXearch-0.0.1-SNAPSHOT-fat.jar /path/to/config.json
 ```
+提供了一个简单的查询页面: [http://localhost:8083/static/](http://localhost:8083/static/)
 
 ## 接口
 ### 查询接口
@@ -43,6 +44,7 @@ java -jar target/vertXearch-0.0.1-SNAPSHOT-fat.jar /path/to/config.json
 ```json
 {
     "status": "success",
+    "cost": 29, /*查询耗时,单位毫秒*/
     "results": [
         {
             "id": "7",
@@ -65,6 +67,7 @@ java -jar target/vertXearch-0.0.1-SNAPSHOT-fat.jar /path/to/config.json
 ```json
 {
     "status": "success",
+    "cost": 29, /*查询耗时,单位毫秒*/
     "results": []
 }
 ```

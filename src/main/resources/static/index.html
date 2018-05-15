@@ -7,6 +7,7 @@
 <body>
 <input id="q" type="text"/>
 <input id="submit" type="button" value="查询"/>
+<span id="cost"></span>
 <hr/>
 <table border="1">
     <thead>
@@ -39,7 +40,7 @@
             success: function (result) {
                 var html = ""
                 for(var i = 0; i < result.results.length; i++){
-                    var doc = result.results[i]
+                    var doc = result.results[i];
                     html = html + "<tr>" +
                         "<td>"+doc["id"]+"</td>" +
                         "<td>"+doc["title"]+"</td>" +
@@ -47,7 +48,8 @@
                         "<td>"+doc["content"]+"</td>" +
                         "</tr>\n"
                 }
-                $("#result").html(html)
+                $("#result").html(html);
+                $("#cost").text("查询结果:"+result.results.lengthç+"条, 查询耗时:"+result["cost"]+"ms");
             }
         })
     }

@@ -1,5 +1,6 @@
 package io.gitlab.leibnizhu.vertXearch
-import io.vertx.core.Handler
+
+import io.vertx.core.{Future, Handler}
 import io.vertx.scala.core.Vertx
 
 object LuceneTester {
@@ -21,15 +22,17 @@ object LuceneTester {
     indexer.cleanAllIndex()
     var numIndexed = 0
     val startTime = System.currentTimeMillis
-    indexer.createIndex(dataDir, res => {
-      if(res.succeeded()){
-        numIndexed = res.result()
+    val future: Future[Int] = Future.future()
+    future.setHandler(ar => {
+      if (ar.succeeded()) {
+        numIndexed = ar.result()
         val endTime = System.currentTimeMillis
         println(numIndexed + " File indexed, time taken: " + (endTime - startTime) + " ms")
         indexer.close()
         handler.handle(numIndexed)
       }
     })
+    indexer.createIndex(dataDir, future)
   }
 
   private def search(searchQuery: String): Unit = {

@@ -12,13 +12,31 @@ import org.slf4j.LoggerFactory
 import scala.util.Try
 
 
-
-class EngineImpl(indexPath: String, articlePath: String) extends Engine {
+class EngineImpl(indexPath: String, articlePath: String, afterInit: Future[Unit]) extends Engine {
   private val log = LoggerFactory.getLogger(getClass)
   private val indexer: Indexer = new Indexer(indexPath)
-  private val searcher: Searcher = new Searcher(indexPath)
+  private var searcher: Searcher = _
   private val formatter: Formatter =new SimpleHTMLFormatter("<font color='red'>", "</font>")
   private val fragmenter: Fragmenter =new SimpleFragmenter(150)
+
+  prepareFirstRunFuture()
+
+  def prepareFirstRunFuture(): Unit = {
+    val future: Future[Int] = Future.future()
+    future.setHandler(_ => {
+      this.searcher = new Searcher(indexPath)
+      afterInit.complete()
+    })
+    prepareDictionaries()
+    indexer.createIndex(articlePath, future)
+  }
+
+  private def prepareDictionaries(): Unit = {
+    val dataDir = new File(articlePath)
+    if (!dataDir.exists()) dataDir.mkdir()
+    val indexDir = new File(indexPath)
+    if (!indexDir.exists()) indexDir.mkdir()
+  }
 
   /**
     * 对源目录下所有可用文件进行索引构建
@@ -26,13 +44,15 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     * @return 增加索引的文件数量
     */
   override def createIndex(): Unit = {
-    indexer.createIndex(articlePath, ar => {
+    val future: Future[Int] = Future.future()
+    future.setHandler(ar => {
       if (ar.succeeded()) {
         log.info("创建索引成功")
       } else {
         log.error("创建索引失败", ar.cause())
       }
     })
+    indexer.createIndex(articlePath, future)
   }
 
   /**
@@ -52,7 +72,8 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     if (files != null && files.nonEmpty) {
       val updatedFiles = files.filter(file => !file.isDirectory && file.exists && file.canRead && file.getName.endsWith(".txt") && file.lastModified() - lastRefreshTime >= 0)
       if (updatedFiles.length > 0) {
-        indexer.createIndex(updatedFiles, ar => {
+        val future: Future[Int] = Future.future()
+        future.setHandler(ar => {
           if (ar.succeeded()) {
             log.info("创建索引成功")
           } else {
@@ -60,6 +81,7 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
           }
           searcher.refreshIndexSearcher()
         })
+        indexer.createIndex(updatedFiles, future)
       } else {
         log.info("没有更新了的文章")
       }
@@ -79,7 +101,7 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
         log.info(s"发现文档(ID=${doc.get(ID)},标题=${doc.get(TITLE)})在文章目录中已被删除,准备从索引中同步删除...")
         indexer.deleteDocument(doc.get(ID))
       }).size
-    if(deleted > 0){
+    if (deleted > 0) {
       indexer.writer.commit()
       searcher.refreshIndexSearcher()
     } else {
