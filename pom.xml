@@ -10,6 +10,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <finalName>vertXearch</finalName>
         <scala.version>2.12.4</scala.version>
         <scala-test.version>3.0.0</scala-test.version>
         <lucene.version>7.2.0</lucene.version>
