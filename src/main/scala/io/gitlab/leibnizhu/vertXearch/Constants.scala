@@ -1,5 +1,7 @@
 package io.gitlab.leibnizhu.vertXearch
 
+import java.io.File
+
 import com.hankcs.lucene.HanLPAnalyzer
 import io.vertx.scala.core.{Context, Vertx}
 
@@ -12,9 +14,31 @@ object Constants {
     this.vertx = ctx.owner
   }
 
-  def indexPath():String = vertxContext.config().get.getString("indexPath", "indexes")
+  var indexPathOrg:String = _
+  def indexPath():String = {
+    if(indexPathOrg == null){
+      indexPathOrg = vertxContext.config().get.getString("indexPath", "indexes")
+      if(!indexPathOrg.endsWith(File.separator)){
+        indexPathOrg += File.separator
+      }
+    }
+    indexPathOrg
+  }
 
-  def articlePath():String = vertxContext.config().get.getString("articlePath", "articles")
+  var articlePathOrg:String = _
+  def articlePath():String = {
+    if(articlePathOrg == null){
+      articlePathOrg = vertxContext.config().get.getString("articlePath", "articles")
+      if(!articlePathOrg.endsWith(File.separator)){
+        articlePathOrg += File.separator
+      }
+    }
+    articlePathOrg
+  }
+
+  def timestampFile():String = indexPath() + "index.ts"
+
+  def refreshTimerInterval(): Long = vertxContext.config().get.getInteger("refreshIndexPerSecond", 300) * 1000L
 
   val ID: String = "id"
   val TITLE: String = "title"

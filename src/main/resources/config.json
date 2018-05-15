@@ -1,7 +1,8 @@
 {
   /* 索引位置*/
-    "indexPath":"/Users/leibnizhu/Desktop/index",
+    "indexPath":"/Users/leibnizhu/Desktop/Index",
   /*文章原始文件位置*/
-    "articlePath":"/Users/leibnizhu/Desktop/articles",
+    "articlePath":"/Users/leibnizhu/Desktop/Data",
+  "refreshIndexPerSecond": 10,
     "serverPort": 8083
 }

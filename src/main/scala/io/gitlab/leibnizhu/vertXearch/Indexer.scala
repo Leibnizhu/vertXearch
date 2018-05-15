@@ -7,7 +7,7 @@ import io.gitlab.leibnizhu.vertXearch.Constants._
 import io.vertx.core.{AsyncResult, Future, Handler}
 import io.vertx.scala.core.CompositeFuture
 import org.apache.lucene.document._
-import org.apache.lucene.index.{IndexWriter, IndexWriterConfig}
+import org.apache.lucene.index.{IndexWriter, IndexWriterConfig, Term}
 import org.apache.lucene.store.FSDirectory
 import org.slf4j.LoggerFactory
 
@@ -15,22 +15,56 @@ import org.slf4j.LoggerFactory
 class Indexer(indexDirectoryPath: String) {
   private val log = LoggerFactory.getLogger(getClass)
   private val indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath))
-  private val writer: IndexWriter = new IndexWriter(indexDirectory, new IndexWriterConfig(analyzer))
+  val writer: IndexWriter = new IndexWriter(indexDirectory, new IndexWriterConfig(analyzer))
 
+  /**
+    * 关闭索引Writer
+    */
   def close(): Unit = {
     writer.close()
   }
 
+  /**
+    * 删除所有索引,慎用
+    */
+  def cleanAllIndex(): Unit = {
+    if (writer.isOpen) {
+      writer.deleteAll()
+      writer.commit()
+    }
+  }
+
+  def deleteDocument(id:String):Long ={
+    writer.deleteDocuments(new Term(ID, id))
+  }
+
+  /**
+    * 读取指定目录下的所有文章,建立索引
+    *
+    * @param dataDirPath 存储文章txt文件的目录
+    * @param callback 建立索引成功之后的回调,传入产生的索引数量
+    */
   def createIndex(dataDirPath: String, callback: Handler[AsyncResult[Int]]): Unit = {
-    CompositeFuture.all(new File(dataDirPath).listFiles
-      .filter(file => !file.isDirectory && file.exists && file.canRead && file.getName.endsWith(".txt"))
-      .map(file => {
+    createIndex(new File(dataDirPath).listFiles
+      .filter(file => !file.isDirectory && file.exists && file.canRead && file.getName.endsWith(".txt")),
+      callback)
+  }
+
+  /**
+    * 读取指定目录下的所有文章,建立索引
+    *
+    * @param files 需要加入索引的文章txt文件
+    * @param callback 建立索引成功之后的回调,传入产生的索引数量
+    */
+  def createIndex(files: Array[File], callback: Handler[AsyncResult[Int]]): Unit = {
+    CompositeFuture.all(files.map(file => {
         val future:io.vertx.scala.core.Future[Boolean] = io.vertx.scala.core.Future.future()
         indexFile(file, future.completer())
         future
       }).toBuffer
     ).setHandler(ar => {
       if(ar.succeeded()){
+        writer.commit()
         callback.handle(Future.succeededFuture(writer.numDocs))
       } else{
         callback.handle(Future.failedFuture(ar.cause()))
@@ -38,21 +72,37 @@ class Indexer(indexDirectoryPath: String) {
     })
   }
 
+  /**
+    * 添加单个文件索引到Writer
+    *
+    * @param file 文章文件
+    * @param callback 加入writer之后的回调,传入是否成功
+    */
   private def indexFile(file: File, callback: Handler[AsyncResult[Boolean]]): Unit = {
     System.out.println("Indexing " + file.getCanonicalPath)
     readDocument(file, doc => {
-      writer.addDocument(doc)
-      callback.handle(Future.succeededFuture())
+      //创建前尝试先删除已有的
+//      writer.deleteDocuments(new Term(ID, doc.get(ID)))
+      writer.updateDocument(new Term(ID, doc.get(ID)),doc)
+      callback.handle(Future.succeededFuture(true))
     })
   }
 
+  /**
+    * 读取单个文件并创建Document
+    * 处理文件ID\标题\作者\内容,而作者不进行分词
+    * ID还是要加入索引的,否则更新文件内容的时候,不能根据ID查出旧文档进行更新(上面indexFile()方法)
+    *
+    * @param file 文章文件
+    * @param callback 创建Document之后的回调,传入Document
+    */
   private def readDocument(file: File, callback: Handler[Document]): Unit = {
     Article.fromFile(file, ar => {
       if(ar.succeeded()){
         val article = ar.result()
         log.info(s"读取到文章(ID=${article.id}, 标题=${article.title})")
         val document = new Document
-        document.add(new Field(ID, article.id, FieldTypeFactory.storedNotIndexed))//ID不参与索引
+        document.add(new StringField(ID, article.id, Field.Store.YES))
         document.add(new TextField(TITLE, article.title, Field.Store.YES))
         document.add(new Field(AUTHOR, article.author, FieldTypeFactory.storedNotAnalyzed))//作者不需要分词
         document.add(new TextField(CONTENTS, article.content.toString, Field.Store.YES))

@@ -18,6 +18,7 @@ object LuceneTester {
 
   private def createIndex(handler: Handler[Int]): Unit = {
     indexer = new Indexer(indexDir)
+    indexer.cleanAllIndex()
     var numIndexed = 0
     val startTime = System.currentTimeMillis
     indexer.createIndex(dataDir, res => {

@@ -21,6 +21,7 @@ class MainVerticle extends ScalaVerticle {
     initComponents()//初始化工具类/组件
     mountRouters()//挂载所有子路由
     startServer(); //启动服务器
+    searchEngine.startRefreshTimer(Constants.refreshTimerInterval())
   }
 
   private def initComponents(): Unit = {

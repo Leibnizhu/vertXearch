@@ -1,15 +1,20 @@
 package io.gitlab.leibnizhu.vertXearch
 
 
+import java.io.File
+
 import io.gitlab.leibnizhu.vertXearch.Constants._
+import io.vertx.core.buffer.Buffer
 import io.vertx.core.{AsyncResult, Future, Handler}
 import org.apache.lucene.search.highlight._
+import org.slf4j.LoggerFactory
 
 import scala.util.Try
 
 
 
 class EngineImpl(indexPath: String, articlePath: String) extends Engine {
+  private val log = LoggerFactory.getLogger(getClass)
   private val indexer: Indexer = new Indexer(indexPath)
   private val searcher: Searcher = new Searcher(indexPath)
   private val formatter: Formatter =new SimpleHTMLFormatter("<font color='red'>", "</font>")
@@ -21,28 +26,81 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     * @return 增加索引的文件数量
     */
   override def createIndex(): Unit = {
-    indexer.createIndex(articlePath, res => {
-      res.succeeded()
+    indexer.createIndex(articlePath, ar => {
+      if (ar.succeeded()) {
+        log.info("创建索引成功")
+      } else {
+        log.error("创建索引失败", ar.cause())
+      }
     })
   }
+
+  /**
+    * 删除所有索引
+    */
+  override def cleanAllIndex(): Unit = indexer.cleanAllIndex()
 
   /**
     * 对源目录下所有可用文件进行索引更新
     *
     * @return 更新索引的文件数量
     */
-  override def refreshIndex(): Int = {
-    0
+  override def refreshIndex(): Unit = {
+    val lastRefreshTime = Try(vertx.fileSystem().readFileBlocking(timestampFile()).toString().toLong).getOrElse(0L)
+    val currentTime = System.currentTimeMillis()
+    val files = new File(articlePath).listFiles()
+    if (files != null && files.nonEmpty) {
+      val updatedFiles = files.filter(file => !file.isDirectory && file.exists && file.canRead && file.getName.endsWith(".txt") && file.lastModified() - lastRefreshTime >= 0)
+      if (updatedFiles.length > 0) {
+        indexer.createIndex(updatedFiles, ar => {
+          if (ar.succeeded()) {
+            log.info("创建索引成功")
+          } else {
+            log.error("创建索引失败", ar.cause())
+          }
+          searcher.refreshIndexSearcher()
+        })
+      } else {
+        log.info("没有更新了的文章")
+      }
+    }
+    //将本次更新的时间戳写入到文件
+    vertx.fileSystem().writeFileBlocking(timestampFile(), Buffer.buffer(currentTime.toString))
+  }
+
+  /**
+    * 清理文章文件已经被删除,但是索引里还有的那些Document
+    * 查出所有存活文章,过滤出文件已删除的,再从索引中删除
+    */
+  def cleanDeletedArticles(): Unit = {
+    val deleted = searcher.getAllDocuments //所有存活的文档
+      .filter(doc => !vertx.fileSystem().existsBlocking(articlePath + doc.get(ID) + ".txt")) //过滤出文章文件不存在的
+      .map(doc => {
+        log.info(s"发现文档(ID=${doc.get(ID)},标题=${doc.get(TITLE)})在文章目录中已被删除,准备从索引中同步删除...")
+        indexer.deleteDocument(doc.get(ID))
+      }).size
+    if(deleted > 0){
+      indexer.writer.commit()
+      searcher.refreshIndexSearcher()
+    } else {
+      log.info("没有被删除的文章")
+    }
   }
 
   /**
     * 启动文章更新定时器
     *
     * @param interval 定时间隔
-    * @param callback 回调方法
     */
-  override def startRefreshTimer(interval: Long, callback: Handler[AsyncResult[Boolean]]): Unit = {
-
+  override def startRefreshTimer(interval: Long): Unit = {
+    vertx.setPeriodic(interval, id => {
+      log.info(s"开始定时更新索引,定时器ID=$id")
+      this.refreshIndex()
+    })
+    vertx.setPeriodic(interval, id => {
+      log.info(s"开始定时清理已删除文章的索引,定时器ID=$id")
+      this.cleanDeletedArticles()
+    })
   }
 
   /**
@@ -53,7 +111,7 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     */
   override def search(searchQuery: String, length: Int, callback: Handler[AsyncResult[List[Article]]]): Unit = {
     val trySearch = Try({
-      val (query,docs) = searcher.search(searchQuery, length)
+      val (query, docs) = searcher.search(searchQuery.toLowerCase(), length)
       //设置高亮格式//设置高亮格式
       val highlighter = new Highlighter(formatter, new QueryScorer(query))
       //设置返回字符串长度
