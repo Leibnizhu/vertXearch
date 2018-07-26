@@ -22,7 +22,11 @@ mvn clean && mvn package
   /*从articlePath更新索引的时间间隔,单位:秒*/
   "refreshIndexPerSecond": 10,
   /*服务端口*/
-  "serverPort": 8083
+  "serverPort": 80833,
+  /*返回的关键词前置标签,默认红色字体*/
+  "keywordPreTag": "<font color='red'>",
+  /*返回的关键词后置标签,要和前置标签闭合*/
+  "keywordPostTag":"</font>"
 }
 ```
 
