@@ -27,3 +27,5 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
+
+src/test/data/
