@@ -72,8 +72,7 @@ class Indexer(indexDirectoryPath: String) {
     * @param callback 加入writer之后的回调,传入是否成功
     */
   private def indexFile(file: File, callback: Future[Boolean]): Unit = {
-    val future: Future[Document] = Future.future()
-    future.setHandler(ar => {
+    val future = Future.future[Document]().setHandler(ar => {
       if (ar.succeeded()) {
         val doc = ar.result()
         //创建前尝试先删除已有的 writer.deleteDocuments(new Term(ID, doc.get(ID)))
@@ -95,7 +94,7 @@ class Indexer(indexDirectoryPath: String) {
     * @param callback 创建Document之后的回调,传入Document
     */
   private def readDocument(file: File, callback: Future[Document]): Unit = {
-    Article.fromFile(file, ar => {
+    Article.fromFile(file, Future.future[Article]().setHandler(ar => {
       if (ar.succeeded()) {
         val article = ar.result()
         log.info(s"读取到文章(ID=${article.id}, 标题=${article.title})")
@@ -109,6 +108,6 @@ class Indexer(indexDirectoryPath: String) {
         log.error("读取文章文件失败.", ar.cause())
         callback.fail(ar.cause())
       }
-    })
+    }))
   }
 }

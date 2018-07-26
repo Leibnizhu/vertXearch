@@ -32,15 +32,14 @@ object Article {
     * @param file 文章txt文件
     * @param handler 读取文章之后的回调,传入解析到的Article
     */
-  def fromFile(file: File, handler: Handler[AsyncResult[Article]]): Unit = {
+  def fromFile(file: File, handler: Future[Article]): Unit = {
     vertx.fileSystem().readFileFuture(file.getAbsolutePath).onComplete{
       case Success(result) =>
-        val article = Article(file, result)
         log.info(s"读取文章文件${file.getName}成功")
-        handler.handle(Future.succeededFuture(article))
+        handler.complete(Article(file, result))
       case Failure(cause) =>
         log.error("读取文章文件失败.", cause)
-        handler.handle(Future.failedFuture(cause))
+        handler.fail(cause)
       }
   }
 

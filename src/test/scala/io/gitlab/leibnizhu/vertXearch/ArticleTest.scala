@@ -2,12 +2,13 @@ package io.gitlab.leibnizhu.vertXearch
 
 import java.io.File
 
-import io.vertx.scala.core.{CompositeFuture, Vertx}
+import io.vertx.core.{CompositeFuture, Future}
+import io.vertx.scala.core.Vertx
 import org.scalatest.FunSuite
 import org.slf4j.LoggerFactory
 
+import scala.collection.JavaConverters._
 import scala.util.{Failure, Success}
-
 
 class ArticleTest extends FunSuite {
 
@@ -25,7 +26,7 @@ class ArticleTest extends FunSuite {
   )
 
 
-  private val dataPath = "/Users/leibnizhu/Desktop/Data"
+  private val dataPath = "/Users/leibnizhu/workspace/vertx-cn-website/vertXearch/src/test/data"
   private val log = LoggerFactory.getLogger(getClass)
 
   test("将Article对象写入到文件") {
@@ -33,7 +34,7 @@ class ArticleTest extends FunSuite {
     context.config().get.put("articlePath", dataPath)
     Constants.init(context)
     source.foreach(article => article.writeToFile({
-      case Success(_ß) =>
+      case Success(_) =>
         log.info(s"写入文章(ID=${article.id}, 标题=${article.title})成功")
       case Failure(cause) =>
         log.info("写入失败:" + cause.getMessage)
@@ -46,19 +47,18 @@ class ArticleTest extends FunSuite {
     Constants.init(context)
     CompositeFuture.all(new File(dataPath).listFiles().filter(_.getName.endsWith(".txt"))
       .map(file => {
-        val future: io.vertx.scala.core.Future[Article] = io.vertx.scala.core.Future.future()
-        future.setHandler(ar => {
+        val future = Future.future[Article]().setHandler(ar => {
           if (ar.succeeded()) {
             log.info("读取文件" + file.getName + "成功")
             val article = ar.result()
-            log.info(article.equals(source.filter(_.id.equals(article.id)).head).toString)
+            assert(article == source.filter(_.id == article.id).head)
           } else {
             log.info("读取文件" + file.getName + "失败")
           }
         })
-        Article.fromFile(file, future.completer())
-        future
+        Article.fromFile(file, future)
+        future.asInstanceOf[Future[_]]
       }
-    ).toBuffer)
+    ).toList.asJava)
   }
 }
