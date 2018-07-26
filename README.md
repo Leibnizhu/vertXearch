@@ -8,14 +8,14 @@
 ## 使用
 ### 编译
 ```bash
-mvn clean && mvn package
+mvn clean package
 ```
 
 ### 修改配置文件
 将`src/main/resources/config.json`复制到任意地方(以`/path/to/config.json`为例),修改其配置:
 ```json
 {
-  /* 索引位置*/
+  /*索引存放位置*/
   "indexPath":"/Users/leibnizhu/Desktop/Index",
   /*文章原始文件位置*/
   "articlePath":"/Users/leibnizhu/Desktop/Data",
