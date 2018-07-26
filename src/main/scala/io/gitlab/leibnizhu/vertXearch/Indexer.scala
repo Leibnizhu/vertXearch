@@ -15,7 +15,7 @@ import scala.collection.JavaConverters._
 class Indexer(indexDirectoryPath: String) {
   private val log = LoggerFactory.getLogger(getClass)
   private val indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath))
-  val writer: IndexWriter = new IndexWriter(indexDirectory, new IndexWriterConfig(analyzer))
+  val writer: IndexWriter = new IndexWriter(indexDirectory, new IndexWriterConfig(ANALYZER))
 
   /**
     * 关闭索引Writer

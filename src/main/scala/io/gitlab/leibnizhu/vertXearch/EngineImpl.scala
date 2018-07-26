@@ -154,11 +154,11 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
         //FIXME 网上说这里的.replaceAll("\\s*", "")是必须的，\r\n这样的空白字符会导致高亮标签错位,但实测好像不是那么一回事儿
         val id = doc.get(ID)
         val content = doc.get(CONTENTS)//.replaceAll("\\s*", "")
-        val highContext = highlighter.getBestFragment(analyzer, CONTENTS, content)
+        val highContext = highlighter.getBestFragment(ANALYZER, CONTENTS, content)
         val title = doc.get(TITLE)//.replaceAll("\\s*", "")
-        val highTitle = highlighter.getBestFragment(analyzer, TITLE, title)
+        val highTitle = highlighter.getBestFragment(ANALYZER, TITLE, title)
         val author = doc.get(AUTHOR)//.replaceAll("\\s*", "")
-        val highAuthor = highlighter.getBestFragment(analyzer, AUTHOR, author)
+        val highAuthor = highlighter.getBestFragment(ANALYZER, AUTHOR, author)
         Article(id,
           Option(highTitle).getOrElse(title),
           Option(highAuthor).getOrElse(author),
