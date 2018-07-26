@@ -20,73 +20,66 @@ class Indexer(indexDirectoryPath: String) {
   /**
     * 关闭索引Writer
     */
-  def close(): Unit = {
+  def close(): Unit =
     writer.close()
-  }
 
   /**
     * 删除所有索引,慎用
     */
-  def cleanAllIndex(): Unit = {
+  def cleanAllIndex(): Unit =
     if (writer.isOpen) {
       writer.deleteAll()
       writer.commit()
     }
-  }
 
-  def deleteDocument(id:String):Long ={
+  def deleteDocument(id: String): Long =
     writer.deleteDocuments(new Term(ID, id))
-  }
 
   /**
     * 读取指定目录下的所有文章,建立索引
     *
     * @param dataDirPath 存储文章txt文件的目录
-    * @param callback 建立索引成功之后的回调,传入产生的索引数量
+    * @param callback    建立索引成功之后的回调,传入产生的索引数量
     */
-  def createIndex(dataDirPath: String, callback: Future[Int]): Unit = {
+  def createIndex(dataDirPath: String, callback: Future[Int]): Unit =
     createIndex(new File(dataDirPath).listFiles
       .filter(file => !file.isDirectory && file.exists && file.canRead && file.getName.endsWith(".txt")),
       callback)
-  }
 
   /**
     * 读取指定目录下的所有文章,建立索引
     *
-    * @param files 需要加入索引的文章txt文件
+    * @param files    需要加入索引的文章txt文件
     * @param callback 建立索引成功之后的回调,传入产生的索引数量
     */
-  def createIndex(files: Array[File], callback: Future[Int]): Unit = {
+  def createIndex(files: Array[File], callback: Future[Int]): Unit =
     CompositeFuture.all(files.map(file => {
       val future: Future[Boolean] = Future.future()
       indexFile(file, future)
       future.asInstanceOf[Future[_]]
     }).toList.asJava
-    ).setHandler(ar => {
-      if(ar.succeeded()){
-        writer.commit()
-        callback.complete(writer.numDocs)
-      } else{
-        callback.fail(ar.cause())
-      }
+    ).setHandler(ar => if (ar.succeeded()) {
+      writer.commit()
+      callback.complete(writer.numDocs)
+    } else {
+      callback.fail(ar.cause())
     })
-  }
 
   /**
     * 添加单个文件索引到Writer
     *
-    * @param file 文章文件
+    * @param file     文章文件
     * @param callback 加入writer之后的回调,传入是否成功
     */
   private def indexFile(file: File, callback: Future[Boolean]): Unit = {
-    val future:Future[Document] = Future.future()
+    val future: Future[Document] = Future.future()
     future.setHandler(ar => {
-      if(ar.succeeded()){
+      if (ar.succeeded()) {
         val doc = ar.result()
         //创建前尝试先删除已有的 writer.deleteDocuments(new Term(ID, doc.get(ID)))
-        writer.updateDocument(new Term(ID, doc.get(ID)),doc)
+        writer.updateDocument(new Term(ID, doc.get(ID)), doc)
         callback.complete(true)
-      } else{
+      } else {
         callback.fail(ar.cause())
       }
     })
@@ -98,18 +91,18 @@ class Indexer(indexDirectoryPath: String) {
     * 处理文件ID\标题\作者\内容,而作者不进行分词
     * ID还是要加入索引的,否则更新文件内容的时候,不能根据ID查出旧文档进行更新(上面indexFile()方法)
     *
-    * @param file 文章文件
+    * @param file     文章文件
     * @param callback 创建Document之后的回调,传入Document
     */
   private def readDocument(file: File, callback: Future[Document]): Unit = {
     Article.fromFile(file, ar => {
-      if(ar.succeeded()){
+      if (ar.succeeded()) {
         val article = ar.result()
         log.info(s"读取到文章(ID=${article.id}, 标题=${article.title})")
         val document = new Document
         document.add(new StringField(ID, article.id, Field.Store.YES))
         document.add(new TextField(TITLE, article.title, Field.Store.YES))
-        document.add(new Field(AUTHOR, article.author, FieldTypeFactory.storedNotAnalyzed))//作者不需要分词
+        document.add(new Field(AUTHOR, article.author, FieldTypeFactory.storedNotAnalyzed)) //作者不需要分词
         document.add(new TextField(CONTENTS, article.content.toString, Field.Store.YES))
         callback.complete(document)
       } else {

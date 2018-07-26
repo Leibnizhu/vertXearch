@@ -16,7 +16,7 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
   private val log: Logger = LoggerFactory.getLogger(getClass)
   private val indexer: Indexer = new Indexer(indexPath)
   private var searcher: Searcher = _
-  private val formatter: Formatter = new SimpleHTMLFormatter("<font color='red'>", "</font>")
+  private val formatter: Formatter = new SimpleHTMLFormatter(keywordPreTag, keywordPostTag)
   private val fragmenter: Fragmenter = new SimpleFragmenter(150)
 
   /**
@@ -26,7 +26,7 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
   def init(afterInit: Future[Unit]): Engine = {
     prepareDictionaries()
     val lostIndex = getLastIndexTimestamp == 0
-    val future: Future[Int] = Future.future()
+    val future: Future[Int] = Future.future() //建立索引的Future
     future.setHandler(_ => {
       if (lostIndex) setCurrentIndexTimestamp(System.currentTimeMillis())
       this.searcher = new Searcher(indexPath)
@@ -97,9 +97,9 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     setCurrentIndexTimestamp(currentTime)
   }
 
-  private def setCurrentIndexTimestamp(currentTime: Long) = vertx.fileSystem().writeFileBlocking(timestampFile(), Buffer.buffer(currentTime.toString))
+  private def setCurrentIndexTimestamp(currentTime: Long) = vertx.fileSystem().writeFileBlocking(timestampFile, Buffer.buffer(currentTime.toString))
 
-  private def getLastIndexTimestamp = Try(vertx.fileSystem().readFileBlocking(timestampFile()).toString().toLong).getOrElse(0L)
+  private def getLastIndexTimestamp = Try(vertx.fileSystem().readFileBlocking(timestampFile).toString().toLong).getOrElse(0L)
 
   /**
     * 清理文章文件已经被删除,但是索引里还有的那些Document
@@ -151,13 +151,13 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
       //设置返回字符串长度
       highlighter.setTextFragmenter(fragmenter)
       docs.map(doc => {
-        //这里的.replaceAll("\\s*", "")是必须的，\r\n这样的空白字符会导致高亮标签错位
+        //FIXME 网上说这里的.replaceAll("\\s*", "")是必须的，\r\n这样的空白字符会导致高亮标签错位,但实测好像不是那么一回事儿
         val id = doc.get(ID)
-        val content = doc.get(CONTENTS).replaceAll("\\s*", "")
+        val content = doc.get(CONTENTS)//.replaceAll("\\s*", "")
         val highContext = highlighter.getBestFragment(analyzer, CONTENTS, content)
-        val title = doc.get(TITLE).replaceAll("\\s*", "")
+        val title = doc.get(TITLE)//.replaceAll("\\s*", "")
         val highTitle = highlighter.getBestFragment(analyzer, TITLE, title)
-        val author = doc.get(AUTHOR).replaceAll("\\s*", "")
+        val author = doc.get(AUTHOR)//.replaceAll("\\s*", "")
         val highAuthor = highlighter.getBestFragment(analyzer, AUTHOR, author)
         Article(id,
           Option(highTitle).getOrElse(title),

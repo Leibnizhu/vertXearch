@@ -17,7 +17,7 @@ case class Article(id: String, title: String, author: String, content: String) {
     * @param callback 写入到文件之后的回调,无传入结果
     */
   def writeToFile(callback: Try[Unit] => Unit): Unit = {
-    val fileName = Constants.articlePath() + "/" + this.id + ".txt"
+    val fileName = Constants.articlePath + "/" + this.id + ".txt"
     val fileContent = this.title + LINE_SEPARATOR + this.author + LINE_SEPARATOR + this.content
     Constants.vertx.fileSystem().writeFileFuture(fileName, Buffer.buffer(fileContent)).onComplete(callback)
   }
@@ -35,7 +35,7 @@ object Article {
   def fromFile(file: File, handler: Handler[AsyncResult[Article]]): Unit = {
     vertx.fileSystem().readFileFuture(file.getAbsolutePath).onComplete{
       case Success(result) =>
-        val article = parse(file, result)
+        val article = Article(file, result)
         log.info(s"读取文章文件${file.getName}成功")
         handler.handle(Future.succeededFuture(article))
       case Failure(cause) =>
@@ -53,7 +53,7 @@ object Article {
     * @param buffer 读取到文件内容的Buffer
     * @return
     */
-  def parse(file: File, buffer: Buffer): Article = {
+  def apply(file: File, buffer: Buffer): Article = {
     val filename = file.getName
     val id = filename.substring(0, filename.lastIndexOf('.'))
     val fileContent = buffer.toString()

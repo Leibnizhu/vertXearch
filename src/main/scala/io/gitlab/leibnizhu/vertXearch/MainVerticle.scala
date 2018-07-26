@@ -1,15 +1,14 @@
 package io.gitlab.leibnizhu.vertXearch
 
 import io.gitlab.leibnizhu.vertXearch.Constants._
+import io.gitlab.leibnizhu.vertXearch.ResponseUtil._
 import io.vertx.core.{Future, Handler}
 import io.vertx.lang.scala.ScalaVerticle
-import io.vertx.lang.scala.json.JsonObject
 import io.vertx.scala.core.http.HttpServer
 import io.vertx.scala.ext.web.handler.StaticHandler
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConverters._
 import scala.util.{Failure, Success}
 
 class MainVerticle extends ScalaVerticle {
@@ -32,7 +31,7 @@ class MainVerticle extends ScalaVerticle {
     Constants.init(ctx)
     this.mainRouter = Router.router(vertx)
     this.server = vertx.createHttpServer
-    this.searchEngine = new EngineImpl(indexPath(), articlePath()).init(afterSearchEngineStarted)
+    this.searchEngine = new EngineImpl(indexPath, articlePath).init(afterSearchEngineStarted)
   }
 
   def mountRouters(): Unit = {
@@ -43,21 +42,20 @@ class MainVerticle extends ScalaVerticle {
 
   private def searchByKeyWord: Handler[RoutingContext] = rc => {
     val startTime = System.currentTimeMillis()
-    val req = rc.request
-    val response = rc.response
-    val keyWord = req.getParam("keyword").getOrElse("")
-    val length = req.getParam("length").map(_.toInt).getOrElse(MAX_SEARCH)
+    val (request, response) = (rc.request, rc.response)
+    val keyWord = request.getParam("keyword").getOrElse("")
+    val length = request.getParam("length").map(_.toInt).getOrElse(MAX_SEARCH)
     searchEngine.search(keyWord, length, ar => {
-      response.putHeader("content-type", "application/json;charset=UTF-8")
-        .end(if (ar.succeeded()) {
+      val costTime = System.currentTimeMillis() - startTime
+      response.putHeader("content-type", "application/json;charset=UTF-8").end(
+        if (ar.succeeded()) {
           val results = ar.result()
-          val costTime = System.currentTimeMillis() - startTime
           log.debug(s"查询关键词'$keyWord'成功, 查询到${results.size}条结果, 耗时${costTime}毫秒")
-          new JsonObject().put("status", "success").put("results", results.asJava).put("cost", costTime).toString
+          successSearch(results, costTime)
         } else {
           val cause = ar.cause()
-          log.error("查询失败", cause)
-          new JsonObject().put("status", "error").put("message", cause.getClass.getName+":"+cause.getMessage).toString
+          log.error(s"查询关键词'$keyWord'失败, 耗时${costTime}毫秒", cause)
+          failSearch(cause, costTime)
         })
     })
   }
@@ -70,7 +68,7 @@ class MainVerticle extends ScalaVerticle {
     server.requestHandler(mainRouter.accept(_)).listenFuture(port).onComplete {
       case Success(_) =>
         log.info("监听{}端口的HTTP服务器启动成功", port)
-        searchEngine.startRefreshTimer(refreshTimerInterval())
+        searchEngine.startRefreshTimer(refreshTimerInterval)
       case Failure(cause) =>
         log.error("监听{}端口的HTTP服务器失败，原因：{}", Seq[AnyRef](port, cause.getLocalizedMessage): _*)
       }
