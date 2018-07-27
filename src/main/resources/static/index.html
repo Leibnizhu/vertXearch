@@ -49,7 +49,7 @@
                         "</tr>\n"
                 }
                 $("#result").html(html);
-                $("#cost").text("查询结果:"+result.results.length+"条, 查询耗时:"+result["cost"]+"ms");
+                $("#cost").text("查询结果:"+result.results.length+"条, 查询耗时:"+result["cost"]/1000+"秒");
             }
         })
     }
