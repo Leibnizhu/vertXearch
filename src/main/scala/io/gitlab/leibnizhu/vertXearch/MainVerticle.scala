@@ -9,7 +9,7 @@ import io.vertx.scala.ext.web.handler.StaticHandler
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import org.slf4j.LoggerFactory
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 class MainVerticle extends ScalaVerticle {
   private val log = LoggerFactory.getLogger(getClass)
@@ -44,7 +44,8 @@ class MainVerticle extends ScalaVerticle {
     val startTime = System.currentTimeMillis()
     val (request, response) = (rc.request, rc.response)
     val keyWord = request.getParam("keyword").getOrElse("")
-    val length = request.getParam("length").map(_.toInt).getOrElse(MAX_SEARCH)
+    val lengthOption = request.getParam("length")
+    val length = Math.max(1,  Try(lengthOption.map(_.toInt).getOrElse(MAX_SEARCH)).getOrElse(MAX_SEARCH)) //防止传入的长度值小于等于0
     searchEngine.search(keyWord, length, ar => {
       val costTime = System.currentTimeMillis() - startTime
       response.putHeader("content-type", "application/json;charset=UTF-8").end(

@@ -14,6 +14,7 @@
         <scala.version>2.12.4</scala.version>
         <scala-test.version>3.0.0</scala-test.version>
         <lucene.version>7.2.0</lucene.version>
+        <vertx.version>3.5.1</vertx.version>
         <slf4j.version>1.7.24</slf4j.version>
         <logback.version>1.1.11</logback.version>
     </properties>
@@ -35,7 +36,12 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web-scala_2.12</artifactId>
-            <version>3.5.1</version>
+            <version>${vertx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-web-client-scala_2.12</artifactId>
+            <version>${vertx.version}</version>
         </dependency>
 
         <!--日志相关-->
