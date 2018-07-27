@@ -1,13 +1,12 @@
 package io.gitlab.leibnizhu.vertXearch
 
 import io.gitlab.leibnizhu.vertXearch.Constants.{CONTENTS, ID, init}
-import io.vertx.scala.core.Future
-import io.vertx.scala.core.Vertx
+import io.vertx.scala.core.{Future, Vertx}
 import org.apache.lucene.document.Document
-import org.scalatest.FunSuite
+import org.scalatest.FlatSpec
 import org.slf4j.LoggerFactory
 
-class LuceneTest extends FunSuite {
+class LuceneTest extends FlatSpec {
   private val log = LoggerFactory.getLogger(getClass)
   val indexDir: String = "/Users/leibnizhu/workspace/vertx-cn-website/vertXearch/src/test/data/Index"
   val dataDir: String = "/Users/leibnizhu/workspace/vertx-cn-website/vertXearch/src/test/data/Articles"
@@ -15,7 +14,7 @@ class LuceneTest extends FunSuite {
   var searcher: Searcher = _
 
   private val keyWord = "clojure"
-  test(s"在已经生成索引的情况下,查${keyWord}返回结果若非空则结果均包含$keyWord") {
+  s"在已经生成索引的情况下,查${keyWord}" should s"返回结果若非空则结果均包含$keyWord" in {
     init(Vertx.vertx().getOrCreateContext())
     val future = createIndex(Future.future[Int]())
     while (!future.isComplete) {}

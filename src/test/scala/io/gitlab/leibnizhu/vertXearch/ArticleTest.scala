@@ -3,12 +3,10 @@ package io.gitlab.leibnizhu.vertXearch
 import java.io.File
 
 import io.vertx.scala.core.{CompositeFuture, Future, Vertx}
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.{BeforeAndAfterAll, FlatSpec}
 import org.slf4j.LoggerFactory
 
-import scala.util.{Failure, Success}
-
-class ArticleTest extends FunSuite with BeforeAndAfterAll {
+class ArticleTest extends FlatSpec with BeforeAndAfterAll {
   private val log = LoggerFactory.getLogger(getClass)
 
   private val source: List[Article] = List(
@@ -35,22 +33,19 @@ class ArticleTest extends FunSuite with BeforeAndAfterAll {
     Constants.init(context)
   }
 
-  test("将Article对象写入到文件") {
+  "将Article对象写入到文件" should "不报错" in {
     futures(0) = CompositeFuture.all(source.map(article => {
       val future = Future.future[Unit]()
-      article.writeToFile({
-      case Success(_) =>
+      article.writeToFile(tried => {
+        assert(tried.isSuccess)
         log.info(s"写入文章(ID=${article.id}, 标题=${article.title})成功")
-        future.complete()
-      case Failure(cause) =>
-        log.info("写入失败:" + cause.getMessage)
         future.complete()
       })
       future
     }).toBuffer)
   }
 
-  test("从文件读取解析成Article应该跟写入的一样") {
+  "从文件读取解析成Article" should "跟写入的一样" in {
     futures(1) = CompositeFuture.all(new File(dataPath).listFiles().filter(_.getName.endsWith(".txt"))
       .map(file => {
         val future = Future.future[Article]().setHandler(ar => {

@@ -3,13 +3,13 @@ package io.gitlab.leibnizhu.vertXearch
 import io.vertx.core.json.JsonObject
 import io.vertx.scala.core.{DeploymentOptions, Future, Vertx}
 import io.vertx.scala.ext.web.client.WebClient
-import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import org.scalatest.{BeforeAndAfterAll, FlatSpec}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 
-class HttpInterfaceTest extends FunSuite with BeforeAndAfterAll {
+class HttpInterfaceTest extends FlatSpec with BeforeAndAfterAll {
   private val log = LoggerFactory.getLogger(getClass)
   private val vertx = Vertx.vertx()
   private var config: JsonObject = _
@@ -26,7 +26,7 @@ class HttpInterfaceTest extends FunSuite with BeforeAndAfterAll {
     while (!future.isCompleted) {}
   }
 
-  test("查询clojure,有结果返回且正确") {
+  "查询clojure" should "有结果返回且正确" in {
     log.info("开始查询clojure测试")
     client.get(this.port, this.host, "/q/clojure").sendFuture().onComplete(tried => {
       Try {
@@ -43,7 +43,7 @@ class HttpInterfaceTest extends FunSuite with BeforeAndAfterAll {
     })
   }
 
-  test("查询clojure并限制返回长度,有结果返回且长度满足限制") {
+  "查询clojure并限制返回长度" should "有结果返回且长度满足限制" in {
     log.info("开始限制长度查询clojure测试")
     client.get(this.port, this.host, "/q/clojure/2").sendFuture().onComplete(tried => {
       Try {
@@ -61,7 +61,7 @@ class HttpInterfaceTest extends FunSuite with BeforeAndAfterAll {
     })
   }
 
-  test("查询thisKeywordWillResponseEmptyResult,返回结果应为空") {
+  "查询thisKeywordWillResponseEmptyResult" should "返回结果应为空" in {
     log.info("开始t查询thisKeywordWillResponseEmptyResul测试")
     client.get(this.port, this.host, "/q/thisKeywordWillResponseEmptyResult").sendFuture().onComplete(tried => {
       Try {
@@ -78,7 +78,7 @@ class HttpInterfaceTest extends FunSuite with BeforeAndAfterAll {
     })
   }
 
-  test("模拟请求错误") {
+  "模拟请求错误" should "响应json带有message字段" in {
     log.info("模拟请求错误测试")
     //FIXME 暂时没想到怎么能触发后台的错误,正常地请求,要么路径不对404,要么参数有问题但被处理掉了,要是删掉索引,可能影响其他测试
     client.get(this.port, this.host, "/q/clojure/aaa").sendFuture().onComplete(tried => {
