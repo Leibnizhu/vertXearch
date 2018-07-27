@@ -2,7 +2,8 @@ package io.gitlab.leibnizhu.vertXearch
 
 import io.gitlab.leibnizhu.vertXearch.Constants._
 import io.gitlab.leibnizhu.vertXearch.ResponseUtil._
-import io.vertx.core.{Future, Handler}
+import io.vertx.scala.core.Future
+import io.vertx.core.Handler
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.http.HttpServer
 import io.vertx.scala.ext.web.handler.StaticHandler
@@ -46,7 +47,7 @@ class MainVerticle extends ScalaVerticle {
     val keyWord = request.getParam("keyword").getOrElse("")
     val lengthOption = request.getParam("length")
     val length = Math.max(1,  Try(lengthOption.map(_.toInt).getOrElse(MAX_SEARCH)).getOrElse(MAX_SEARCH)) //防止传入的长度值小于等于0
-    searchEngine.search(keyWord, length, ar => {
+    searchEngine.search(keyWord, length, Future.future[List[Article]]().setHandler(ar => {
       val costTime = System.currentTimeMillis() - startTime
       response.putHeader("content-type", "application/json;charset=UTF-8").end(
         if (ar.succeeded()) {
@@ -58,7 +59,7 @@ class MainVerticle extends ScalaVerticle {
           log.error(s"查询关键词'$keyWord'失败, 耗时${costTime}毫秒", cause)
           failSearch(cause, costTime)
         })
-    })
+    }))
   }
 
   /**
@@ -77,7 +78,7 @@ class MainVerticle extends ScalaVerticle {
 
   override def stop(): Unit = {
     server.close(res => log.info("HTTP服务器关闭" + (if (res.succeeded) "成功" else "失败")))
-    searchEngine.stop(res => log.info("搜索引擎关闭" + (if (res.succeeded) "成功" else "失败")))
+    searchEngine.stop(Future.future().setHandler(res => log.info("搜索引擎关闭" + (if (res.succeeded) "成功" else "失败"))))
     super.stop()
   }
 

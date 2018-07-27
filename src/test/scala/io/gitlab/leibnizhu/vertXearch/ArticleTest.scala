@@ -2,12 +2,10 @@ package io.gitlab.leibnizhu.vertXearch
 
 import java.io.File
 
-import io.vertx.core.{CompositeFuture, Future}
-import io.vertx.scala.core.Vertx
+import io.vertx.scala.core.{CompositeFuture, Future, Vertx}
 import org.scalatest.FunSuite
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConverters._
 import scala.util.{Failure, Success}
 
 class ArticleTest extends FunSuite {
@@ -57,8 +55,8 @@ class ArticleTest extends FunSuite {
           }
         })
         Article.fromFile(file, future)
-        future.asInstanceOf[Future[_]]
+        future
       }
-    ).toList.asJava)
+    ).toBuffer)
   }
 }

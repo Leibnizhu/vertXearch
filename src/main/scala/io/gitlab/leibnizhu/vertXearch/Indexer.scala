@@ -4,13 +4,11 @@ import java.io.File
 import java.nio.file.Paths
 
 import io.gitlab.leibnizhu.vertXearch.Constants._
-import io.vertx.core.{CompositeFuture, Future}
+import io.vertx.scala.core.{CompositeFuture, Future}
 import org.apache.lucene.document._
 import org.apache.lucene.index.{IndexWriter, IndexWriterConfig, Term}
 import org.apache.lucene.store.FSDirectory
 import org.slf4j.LoggerFactory
-
-import scala.collection.JavaConverters._
 
 class Indexer(indexDirectoryPath: String) {
   private val log = LoggerFactory.getLogger(getClass)
@@ -53,17 +51,14 @@ class Indexer(indexDirectoryPath: String) {
     * @param callback 建立索引成功之后的回调,传入产生的索引数量
     */
   def createIndex(files: Array[File], callback: Future[Int]): Unit =
-    CompositeFuture.all(files.map(file => {
-      val future: Future[Boolean] = Future.future()
-      indexFile(file, future)
-      future.asInstanceOf[Future[_]]
-    }).toList.asJava
-    ).setHandler(ar => if (ar.succeeded()) {
-      writer.commit()
-      callback.complete(writer.numDocs)
-    } else {
-      callback.fail(ar.cause())
-    })
+    CompositeFuture.all(files.map(indexFile(_, Future.future[Boolean]())).toBuffer)
+      .setHandler(ar =>
+        if (ar.succeeded()) {
+          writer.commit()
+          callback.complete(writer.numDocs)
+        } else {
+          callback.fail(ar.cause())
+        })
 
   /**
     * 添加单个文件索引到Writer
@@ -71,8 +66,8 @@ class Indexer(indexDirectoryPath: String) {
     * @param file     文章文件
     * @param callback 加入writer之后的回调,传入是否成功
     */
-  private def indexFile(file: File, callback: Future[Boolean]): Unit = {
-    val future = Future.future[Document]().setHandler(ar => {
+  private def indexFile(file: File, callback: Future[Boolean]): Future[Boolean] = {
+    readDocument(file, Future.future[Document]().setHandler(ar => {
       if (ar.succeeded()) {
         val doc = ar.result()
         //创建前尝试先删除已有的 writer.deleteDocuments(new Term(ID, doc.get(ID)))
@@ -81,8 +76,8 @@ class Indexer(indexDirectoryPath: String) {
       } else {
         callback.fail(ar.cause())
       }
-    })
-    readDocument(file, future)
+    }))
+    callback
   }
 
   /**

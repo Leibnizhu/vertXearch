@@ -1,7 +1,7 @@
 package io.gitlab.leibnizhu.vertXearch
 
 import io.gitlab.leibnizhu.vertXearch.Constants.{CONTENTS, ID, init}
-import io.vertx.core.Future
+import io.vertx.scala.core.Future
 import io.vertx.scala.core.Vertx
 import org.apache.lucene.document.Document
 import org.scalatest.FunSuite
