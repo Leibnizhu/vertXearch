@@ -2,14 +2,15 @@ package io.gitlab.leibnizhu.vertXearch
 
 import io.gitlab.leibnizhu.vertXearch.Constants._
 import io.gitlab.leibnizhu.vertXearch.ResponseUtil._
-import io.vertx.scala.core.Future
 import io.vertx.core.Handler
 import io.vertx.lang.scala.ScalaVerticle
+import io.vertx.scala.core.Future
 import io.vertx.scala.core.http.HttpServer
 import io.vertx.scala.ext.web.handler.StaticHandler
 import io.vertx.scala.ext.web.{Router, RoutingContext}
 import org.slf4j.LoggerFactory
 
+import scala.concurrent.Promise
 import scala.util.{Failure, Success, Try}
 
 class MainVerticle extends ScalaVerticle {
@@ -18,21 +19,24 @@ class MainVerticle extends ScalaVerticle {
   private var server: HttpServer = _
   private var searchEngine: Engine = _
 
-  override def start(): Unit = {
-    super.start()
-    val future: Future[Unit] = Future.future()
-    future.setHandler(_ => { //初始化工具类/组件
+  override def startFuture(): concurrent.Future[_] = {
+    val promise = Promise[Unit]()
+    //初始化工具类/组件
+    val startedFuture = Future.future[Unit]().setHandler(ar => {
       mountRouters() //挂载所有子路由
       startServer(); //启动服务器
+      if (ar.succeeded()) promise.success() else promise.failure(ar.cause())
     })
-    initComponents(future)
+    initComponents(startedFuture)
+    promise.future
   }
 
-  private def initComponents(afterSearchEngineStarted: Future[Unit]): Unit = {
+  private def initComponents(afterSearchEngineStarted: Future[Unit]): Future[Unit] = {
     Constants.init(ctx)
     this.mainRouter = Router.router(vertx)
     this.server = vertx.createHttpServer
     this.searchEngine = new EngineImpl(indexPath, articlePath).init(afterSearchEngineStarted)
+    afterSearchEngineStarted
   }
 
   def mountRouters(): Unit = {

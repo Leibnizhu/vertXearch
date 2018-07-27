@@ -30,6 +30,7 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     future.setHandler(_ => {
       if (lostIndex) setCurrentIndexTimestamp(System.currentTimeMillis())
       this.searcher = new Searcher(indexPath)
+      log.info("搜索引擎EngineImpl启动完毕")
       afterInit.complete()
     })
     if (lostIndex) {

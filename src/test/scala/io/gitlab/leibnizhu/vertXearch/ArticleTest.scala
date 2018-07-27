@@ -3,12 +3,12 @@ package io.gitlab.leibnizhu.vertXearch
 import java.io.File
 
 import io.vertx.scala.core.{CompositeFuture, Future, Vertx}
-import org.scalatest.FunSuite
+import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import org.slf4j.LoggerFactory
 
 import scala.util.{Failure, Success}
 
-class ArticleTest extends FunSuite {
+class ArticleTest extends FunSuite with BeforeAndAfterAll {
   private val log = LoggerFactory.getLogger(getClass)
 
   private val source: List[Article] = List(
@@ -25,25 +25,33 @@ class ArticleTest extends FunSuite {
   )
 
 
-  private val dataPath = "/Users/leibnizhu/workspace/vertx-cn-website/vertXearch/src/test/data"
+  private val dataPath = "/Users/leibnizhu/workspace/vertx-cn-website/vertXearch/src/test/data/Articles"
+  private val vertx = Vertx.vertx()
+  private val context = vertx.getOrCreateContext()
+  private val futures = new Array[Future[_]](2)
 
-  test("将Article对象写入到文件") {
-    val context = Vertx.vertx().getOrCreateContext()
+  override def beforeAll: Unit = {
     context.config().get.put("articlePath", dataPath)
     Constants.init(context)
-    source.foreach(article => article.writeToFile({
+  }
+
+  test("将Article对象写入到文件") {
+    futures(0) = CompositeFuture.all(source.map(article => {
+      val future = Future.future[Unit]()
+      article.writeToFile({
       case Success(_) =>
         log.info(s"写入文章(ID=${article.id}, 标题=${article.title})成功")
+        future.complete()
       case Failure(cause) =>
         log.info("写入失败:" + cause.getMessage)
-    }))
+        future.complete()
+      })
+      future
+    }).toBuffer)
   }
 
   test("从文件读取解析成Article应该跟写入的一样") {
-    val context = Vertx.vertx().getOrCreateContext()
-    context.config().get.put("articlePath", dataPath)
-    Constants.init(context)
-    CompositeFuture.all(new File(dataPath).listFiles().filter(_.getName.endsWith(".txt"))
+    futures(1) = CompositeFuture.all(new File(dataPath).listFiles().filter(_.getName.endsWith(".txt"))
       .map(file => {
         val future = Future.future[Article]().setHandler(ar => {
           if (ar.succeeded()) {
@@ -58,5 +66,12 @@ class ArticleTest extends FunSuite {
         future
       }
     ).toBuffer)
+  }
+
+  override def afterAll: Unit = {
+    log.info("等待异步任务关闭")
+    futures.foreach(f => while (!f.isComplete()) {})
+    log.info("关闭Vertx")
+    vertx.close()
   }
 }

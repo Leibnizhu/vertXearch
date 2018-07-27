@@ -17,15 +17,13 @@ class HttpInterfaceTest extends FunSuite with BeforeAndAfterAll {
   private var port: Int = _
   private val client = WebClient.create(vertx)
   private val configFile = "/Users/leibnizhu/workspace/vertx-cn-website/vertXearch/src/main/resources/config.json"
-
   private val futures = Array.fill(4)(Future.future[Unit]())
 
   override def beforeAll: Unit = {
     this.config = new JsonObject(vertx.fileSystem().readFileBlocking(configFile))
     this.port = config.getInteger("serverPort", 8083)
-    val future = Future.future[String]()
-    vertx.deployVerticle(s"scala:${classOf[MainVerticle].getName}", DeploymentOptions().setConfig(config), future.completer())
-    while (!future.isComplete()) {}
+    val future = vertx.deployVerticleFuture(s"scala:${classOf[MainVerticle].getName}", DeploymentOptions().setConfig(config))
+    while (!future.isCompleted) {}
   }
 
   test("查询clojure,有结果返回且正确") {
@@ -102,6 +100,7 @@ class HttpInterfaceTest extends FunSuite with BeforeAndAfterAll {
     log.info("等待异步任务关闭")
     futures.foreach(f => while (!f.isComplete()) {})
     log.info("关闭Vertx")
-    vertx.close()
+    val closeFuture = vertx.closeFuture()
+    while (!closeFuture.isCompleted) {}
   }
 }
