@@ -25,7 +25,7 @@ class MainVerticle extends ScalaVerticle {
     val startedFuture = Future.future[Unit]().setHandler(ar => {
       mountRouters() //挂载所有子路由
       startServer(); //启动服务器
-      if (ar.succeeded()) promise.success() else promise.failure(ar.cause())
+      if (ar.succeeded()) promise.success(()) else promise.failure(ar.cause())
     })
     initComponents(startedFuture)
     promise.future
