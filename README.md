@@ -7,8 +7,12 @@
 
 ## 使用
 ### 编译
+本项目支持使用`Maven`或`Gradle`进行构建,任选一个就可以
 ```bash
+# 使用Maven
 mvn clean package
+# 也可以使用Gradle,默认任务是清空,测试并打fat包
+gradle
 ```
 
 ### 修改配置文件
@@ -31,8 +35,12 @@ mvn clean package
 ```
 
 ### 启动
+注意:使用`Maven`和`Gradle`的打包路径不一样,因此命令不一样
 ```bash
-java -jar target/vertXearch-0.0.1-SNAPSHOT-fat.jar /path/to/config.json
+# 如果使用Maven:
+java -jar target/vertXearch-0.0.1-fat.jar /path/to/config.json
+# 如果使用Gradle:
+java -jar target/lib/vertXearch-0.0.1-fat.jar /path/to/config.json
 ```
 提供了一个简单的查询页面: [http://localhost:8083/static/](http://localhost:8083/static/)
 
