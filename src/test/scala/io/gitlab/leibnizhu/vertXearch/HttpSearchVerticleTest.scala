@@ -1,5 +1,6 @@
 package io.gitlab.leibnizhu.vertXearch
 
+import io.gitlab.leibnizhu.vertXearch.verticle.HttpSearchVerticle
 import io.vertx.core.json.JsonObject
 import io.vertx.scala.core.{DeploymentOptions, Future, Vertx}
 import io.vertx.scala.ext.web.client.WebClient
@@ -9,7 +10,7 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 
-class HttpInterfaceTest extends FlatSpec with BeforeAndAfterAll {
+class HttpSearchVerticleTest extends FlatSpec with BeforeAndAfterAll {
   private val log = LoggerFactory.getLogger(getClass)
   private val vertx = Vertx.vertx()
   private var config: JsonObject = _
@@ -22,7 +23,7 @@ class HttpInterfaceTest extends FlatSpec with BeforeAndAfterAll {
   override def beforeAll: Unit = {
     this.config = new JsonObject(vertx.fileSystem().readFileBlocking(configFile))
     this.port = config.getInteger("serverPort", 8083)
-    val future = vertx.deployVerticleFuture(s"scala:${classOf[MainVerticle].getName}", DeploymentOptions().setConfig(config))
+    val future = vertx.deployVerticleFuture(s"scala:${classOf[HttpSearchVerticle].getName}", DeploymentOptions().setConfig(config))
     while (!future.isCompleted) {}
   }
 
@@ -62,7 +63,7 @@ class HttpInterfaceTest extends FlatSpec with BeforeAndAfterAll {
   }
 
   "查询thisKeywordWillResponseEmptyResult" should "返回结果应为空" in {
-    log.info("开始t查询thisKeywordWillResponseEmptyResul测试")
+    log.info("开始查询thisKeywordWillResponseEmptyResul测试")
     client.get(this.port, this.host, "/q/thisKeywordWillResponseEmptyResult").sendFuture().onComplete(tried => {
       Try {
         assert(tried.isSuccess)

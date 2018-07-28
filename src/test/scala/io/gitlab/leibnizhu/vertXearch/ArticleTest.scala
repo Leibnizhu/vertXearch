@@ -2,6 +2,7 @@ package io.gitlab.leibnizhu.vertXearch
 
 import java.io.File
 
+import io.gitlab.leibnizhu.vertXearch.utils.{Article, Constants}
 import io.vertx.core.json.JsonObject
 import io.vertx.scala.core.{CompositeFuture, Future, Vertx}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec}

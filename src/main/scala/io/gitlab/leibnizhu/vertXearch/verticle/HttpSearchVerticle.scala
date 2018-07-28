@@ -1,7 +1,9 @@
-package io.gitlab.leibnizhu.vertXearch
+package io.gitlab.leibnizhu.vertXearch.verticle
 
-import io.gitlab.leibnizhu.vertXearch.Constants._
-import io.gitlab.leibnizhu.vertXearch.ResponseUtil._
+import io.gitlab.leibnizhu.vertXearch.engine.{Engine, EngineImpl}
+import io.gitlab.leibnizhu.vertXearch.utils.Constants._
+import io.gitlab.leibnizhu.vertXearch.utils.ResponseUtil._
+import io.gitlab.leibnizhu.vertXearch.utils.{Article, Constants}
 import io.vertx.core.Handler
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.Future
@@ -13,7 +15,7 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.Promise
 import scala.util.{Failure, Success, Try}
 
-class MainVerticle extends ScalaVerticle {
+class HttpSearchVerticle extends ScalaVerticle {
   private val log = LoggerFactory.getLogger(getClass)
   private var mainRouter: Router = _
   private var server: HttpServer = _

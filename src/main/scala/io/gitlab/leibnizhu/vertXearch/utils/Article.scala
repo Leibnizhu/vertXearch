@@ -1,8 +1,8 @@
-package io.gitlab.leibnizhu.vertXearch
+package io.gitlab.leibnizhu.vertXearch.utils
 
 import java.io.File
 
-import io.gitlab.leibnizhu.vertXearch.Constants.{LINE_SEPARATOR, vertx}
+import io.gitlab.leibnizhu.vertXearch.utils.Constants.{LINE_SEPARATOR, vertx}
 import io.vertx.core.buffer.Buffer
 import io.vertx.scala.core.Future
 import org.slf4j.LoggerFactory
