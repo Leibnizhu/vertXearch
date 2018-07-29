@@ -2,10 +2,10 @@ package io.gitlab.leibnizhu.vertXearch.verticle
 
 import io.gitlab.leibnizhu.vertXearch.engine.{Engine, EngineImpl}
 import io.gitlab.leibnizhu.vertXearch.utils.Constants.{articlePath, indexPath}
-import io.gitlab.leibnizhu.vertXearch.utils.EventbusUtil.Method.{ADD_ARTICLE, SEARCH}
-import io.gitlab.leibnizhu.vertXearch.utils.EventbusUtil._
+import io.gitlab.leibnizhu.vertXearch.utils.EventbusRequestUtil.Method.{ADD_ARTICLE, SEARCH}
+import io.gitlab.leibnizhu.vertXearch.utils.EventbusRequestUtil._
 import io.gitlab.leibnizhu.vertXearch.utils.ResponseUtil.{failSearch, successSearch}
-import io.gitlab.leibnizhu.vertXearch.utils.{Article, Constants, EventbusUtil}
+import io.gitlab.leibnizhu.vertXearch.utils.{Article, Constants, EventbusRequestUtil}
 import io.vertx.core.json.JsonObject
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.Future
@@ -30,6 +30,11 @@ class EventbusSearchVerticle extends ScalaVerticle{
     promise.future
   }
 
+  override def stop(): Unit = {
+    searchEngine.stop(Future.future().setHandler(res => log.info("搜索引擎关闭" + (if (res.succeeded) "成功" else "失败"))))
+    super.stop()
+  }
+
   private def handleEventbusMessage(msg: Message[JsonObject]): Unit = {
     val msgBody = msg.body
     log.debug(s"接收到EventBus请求消息(${msg.address}),消息内容：$msgBody")
@@ -52,8 +57,8 @@ class EventbusSearchVerticle extends ScalaVerticle{
   def handleSearchRequest(msg: Message[JsonObject]): Unit = {
     val msgBody = msg.body()
     val startTime = System.currentTimeMillis()
-    val keyword = EventbusUtil.keywordFromRequest(msgBody)
-    val length = EventbusUtil.lengthFromRequest(msgBody)
+    val keyword = EventbusRequestUtil.keywordFromRequest(msgBody)
+    val length = EventbusRequestUtil.lengthFromRequest(msgBody)
     searchEngine.search(keyword, length, //防止传入的长度值小于等于0
       Future.future[List[Article]]().setHandler(ar => {
         val costTime = System.currentTimeMillis() - startTime

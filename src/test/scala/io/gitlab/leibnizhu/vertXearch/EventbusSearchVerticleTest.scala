@@ -1,6 +1,6 @@
 package io.gitlab.leibnizhu.vertXearch
 
-import io.gitlab.leibnizhu.vertXearch.utils.EventbusUtil._
+import io.gitlab.leibnizhu.vertXearch.utils.EventbusRequestUtil._
 import io.gitlab.leibnizhu.vertXearch.verticle.EventbusSearchVerticle
 import io.vertx.core.eventbus.ReplyException
 import io.vertx.core.json.JsonObject
@@ -81,8 +81,9 @@ class EventbusSearchVerticleTest extends FlatSpec with BeforeAndAfterAll {
   override def afterAll: Unit = {
     log.info("等待异步任务关闭")
     futures.foreach(f => while (!f.isComplete()) {})
-    log.info("关闭Vertx")
+    log.info("Eventbus测试准备关闭Vertx")
     val closeFuture = vertx.closeFuture()
     while (!closeFuture.isCompleted) {}
+    log.info("Eventbus测试已经关闭Vertx")
   }
 }

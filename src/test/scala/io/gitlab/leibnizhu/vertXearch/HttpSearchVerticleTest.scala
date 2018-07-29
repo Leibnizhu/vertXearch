@@ -34,10 +34,10 @@ class HttpSearchVerticleTest extends FlatSpec with BeforeAndAfterAll {
         val response = tried.get
         assert(response.statusCode() == 200)
         val respJson = new JsonObject(response.body.get)
+        log.info(s"查询clojure的查询结果:${respJson.encodePrettily()}")
         assert(respJson.getString("status") == "success")
         assert(!respJson.getJsonArray("results").isEmpty)
         assert(respJson containsKey "cost")
-        log.info(s"查询clojure的查询结果:${respJson.encodePrettily()}")
       } finally
         futures(0).complete()
     })
@@ -51,11 +51,11 @@ class HttpSearchVerticleTest extends FlatSpec with BeforeAndAfterAll {
         val response = tried.get
         assert(response.statusCode() == 200)
         val respJson = new JsonObject(response.body.get)
+        log.info(s"查询clojure并限制最大长度为2的查询结果:${respJson.encodePrettily()}")
         assert(respJson.getString("status") == "success")
         assert(!respJson.getJsonArray("results").isEmpty)
         assert(respJson.getJsonArray("results").size() <= 2)
         assert(respJson containsKey "cost")
-        log.info(s"查询clojure并限制最大长度为2的查询结果:${respJson.encodePrettily()}")
       } finally
         futures(1).complete()
     })
@@ -69,10 +69,10 @@ class HttpSearchVerticleTest extends FlatSpec with BeforeAndAfterAll {
         val response = tried.get
         assert(response.statusCode() == 200)
         val respJson = new JsonObject(response.body.get)
+        log.info(s"查询thisKeywordWillResponseEmptyResult的查询结果:${respJson.encodePrettily()}")
         assert(respJson.getString("status") == "success")
         assert(respJson.getJsonArray("results").isEmpty)
         assert(respJson containsKey "cost")
-        log.info(s"查询thisKeywordWillResponseEmptyResult的查询结果:${respJson.encodePrettily()}")
       } finally
         futures(2).complete()
     })
@@ -87,10 +87,10 @@ class HttpSearchVerticleTest extends FlatSpec with BeforeAndAfterAll {
         val response = tried.get
         assert(response.statusCode() == 200)
         val respJson = new JsonObject(response.body.get)
+        log.info(s"模拟请求错误查询的结果:${respJson.encodePrettily()}")
         assert(respJson.getString("status") == "error")
         assert(respJson.containsKey("message"))
         assert(respJson containsKey "cost")
-        log.info(s"模拟请求错误查询的结果:${respJson.encodePrettily()}")
       } finally
       futures(3).complete()
     })
@@ -99,8 +99,9 @@ class HttpSearchVerticleTest extends FlatSpec with BeforeAndAfterAll {
   override def afterAll: Unit = {
     log.info("等待异步任务关闭")
     futures.foreach(f => while (!f.isComplete()) {})
-    log.info("关闭Vertx")
+    log.info("Http接口测试准备关闭Vertx")
     val closeFuture = vertx.closeFuture()
     while (!closeFuture.isCompleted) {}
+    log.info("Http接口测试已经关闭Vertx")
   }
 }

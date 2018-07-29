@@ -63,7 +63,9 @@ class ArticleTest extends FlatSpec with BeforeAndAfterAll {
   override def afterAll: Unit = {
     log.info("等待异步任务关闭")
     futures.foreach(f => while (!f.isComplete()) {})
-    log.info("关闭Vertx")
-    vertx.close()
+    log.info("Article测试准备关闭Vertx")
+    val closeFuture = vertx.closeFuture()
+    while (!closeFuture.isCompleted) {}
+    log.info("Article测试已经关闭Vertx")
   }
 }

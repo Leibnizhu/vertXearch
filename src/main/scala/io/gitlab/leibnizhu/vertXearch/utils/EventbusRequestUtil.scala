@@ -4,12 +4,12 @@ import io.vertx.core.json.JsonObject
 
 import scala.util.Try
 
-
-object EventbusUtil {
+object EventbusRequestUtil {
   val SEARCH_LISTEN_ADDRESS = "search"
 
   val REQ_METHOD_KEY = "method"
   val REQ_CONTENT_KEY = "content"
+
   val REQ_CONTENT_KEYWORD_KEY = "keyword"
   val REQ_CONTENT_LENGTH_KEY = "length"
 
