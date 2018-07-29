@@ -4,13 +4,14 @@ import java.io.File
 
 import io.gitlab.leibnizhu.vertXearch.utils.Constants.{LINE_SEPARATOR, vertx}
 import io.vertx.core.buffer.Buffer
+import io.vertx.lang.scala.json.JsonObject
 import io.vertx.scala.core.Future
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
 
-case class Article(id: String, title: String, author: String, content: String) {
+case class Article(id: String, title: String, author: String, content: String) extends Serializable {
   /**
     * 将Article对象写入到文件,目录由配置文件指定
     *
@@ -21,6 +22,10 @@ case class Article(id: String, title: String, author: String, content: String) {
     val fileContent = this.title + LINE_SEPARATOR + this.author + LINE_SEPARATOR + this.content
     Constants.vertx.fileSystem().writeFileFuture(fileName, Buffer.buffer(fileContent)).onComplete(callback)
   }
+
+  def toJsonObject(): JsonObject =
+    new JsonObject()
+      .put("id", this.id).put("title", this.title).put("author", this.author).put("content", this.content)
 }
 
 object Article {

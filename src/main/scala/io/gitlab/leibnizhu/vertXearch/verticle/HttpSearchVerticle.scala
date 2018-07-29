@@ -52,18 +52,19 @@ class HttpSearchVerticle extends ScalaVerticle {
     val (request, response) = (rc.request, rc.response)
     val keyWord = request.getParam("keyword").getOrElse("")
     val lengthOption = request.getParam("length")
-    val length = Math.max(1,  Try(lengthOption.map(_.toInt).getOrElse(MAX_SEARCH)).getOrElse(MAX_SEARCH)) //防止传入的长度值小于等于0
-    searchEngine.search(keyWord, length, Future.future[List[Article]]().setHandler(ar => {
+    val length = Try(lengthOption.map(_.toInt).getOrElse(MAX_SEARCH)).getOrElse(MAX_SEARCH) //第一个getOrElse为无传入参数,第二个getOrElse为传入参数无法解析,
+    searchEngine.search(keyWord, Math.max(1, length), //防止传入的长度值小于等于0
+      Future.future[List[Article]]().setHandler(ar => {
       val costTime = System.currentTimeMillis() - startTime
       response.putHeader("content-type", "application/json;charset=UTF-8").end(
         if (ar.succeeded()) {
           val results = ar.result()
           log.debug(s"查询关键词'$keyWord'成功, 查询到${results.size}条结果, 耗时${costTime}毫秒")
-          successSearch(results, costTime)
+          successSearch(results, costTime).toString
         } else {
           val cause = ar.cause()
           log.error(s"查询关键词'$keyWord'失败, 耗时${costTime}毫秒", cause)
-          failSearch(cause, costTime)
+          failSearch(cause, costTime).toString
         })
     }))
   }

@@ -1,21 +1,33 @@
 package io.gitlab.leibnizhu.vertXearch.verticle
 
+import io.gitlab.leibnizhu.vertXearch.engine.{Engine, EngineImpl}
+import io.gitlab.leibnizhu.vertXearch.utils.Constants.{articlePath, indexPath}
 import io.gitlab.leibnizhu.vertXearch.utils.EventbusUtil.Method.{ADD_ARTICLE, SEARCH}
 import io.gitlab.leibnizhu.vertXearch.utils.EventbusUtil._
+import io.gitlab.leibnizhu.vertXearch.utils.ResponseUtil.{failSearch, successSearch}
+import io.gitlab.leibnizhu.vertXearch.utils.{Article, Constants, EventbusUtil}
 import io.vertx.core.json.JsonObject
 import io.vertx.lang.scala.ScalaVerticle
+import io.vertx.scala.core.Future
 import io.vertx.scala.core.eventbus.Message
 import org.slf4j.LoggerFactory
 
+import scala.concurrent.Promise
 import scala.util.{Failure, Success, Try}
 
 class EventbusSearchVerticle extends ScalaVerticle{
   private val log = LoggerFactory.getLogger(getClass)
+  private var searchEngine: Engine = _
 
-
-  override def start(): Unit = {
-    super.start()
-    vertx.eventBus.consumer[JsonObject](SEARCH_LISTEN_ADDRESS).handler(handleEventbusMessage)
+  override def startFuture(): concurrent.Future[_] = {
+    Constants.init(ctx)
+    val promise = Promise[Unit]()
+    val startedFuture = Future.future[Unit]().setHandler(ar => {
+      vertx.eventBus.consumer[JsonObject](SEARCH_LISTEN_ADDRESS).handler(handleEventbusMessage)
+      if (ar.succeeded()) promise.success(()) else promise.failure(ar.cause())
+    })
+    this.searchEngine = new EngineImpl(indexPath, articlePath).init(startedFuture)
+    promise.future
   }
 
   private def handleEventbusMessage(msg: Message[JsonObject]): Unit = {
@@ -38,6 +50,22 @@ class EventbusSearchVerticle extends ScalaVerticle{
   }
 
   def handleSearchRequest(msg: Message[JsonObject]): Unit = {
-    msg.reply("Not Finish yet")
+    val msgBody = msg.body()
+    val startTime = System.currentTimeMillis()
+    val keyword = EventbusUtil.keywordFromRequest(msgBody)
+    val length = EventbusUtil.lengthFromRequest(msgBody)
+    searchEngine.search(keyword, length, //防止传入的长度值小于等于0
+      Future.future[List[Article]]().setHandler(ar => {
+        val costTime = System.currentTimeMillis() - startTime
+        if (ar.succeeded()) {
+          val results = ar.result()
+          log.debug(s"查询关键词'$keyword'成功, 查询到${results.size}条结果, 耗时${costTime}毫秒")
+          msg.reply(successSearch(results, costTime))
+        } else {
+          val cause = ar.cause()
+          log.error(s"查询关键词'$keyword'失败, 耗时${costTime}毫秒", cause)
+          msg.fail(500, failSearch(cause, costTime).toString)
+        }
+      }))
   }
 }
