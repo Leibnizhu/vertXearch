@@ -33,3 +33,5 @@ src/test/data/Articles/10.txt
 
 .gradle/
 gradle/
+bin/
+out/

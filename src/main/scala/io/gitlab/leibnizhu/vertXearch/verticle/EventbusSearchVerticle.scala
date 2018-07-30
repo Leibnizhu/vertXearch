@@ -20,13 +20,17 @@ class EventbusSearchVerticle extends ScalaVerticle{
   private var searchEngine: Engine = _
 
   override def startFuture(): concurrent.Future[_] = {
-    Constants.init(ctx)
     val promise = Promise[Unit]()
-    val startedFuture = Future.future[Unit]().setHandler(ar => {
-      vertx.eventBus.consumer[JsonObject](SEARCH_LISTEN_ADDRESS).handler(handleEventbusMessage)
-      if (ar.succeeded()) promise.success(()) else promise.failure(ar.cause())
-    })
-    this.searchEngine = new EngineImpl(indexPath, articlePath).init(startedFuture)
+    Constants.init(ctx)
+    val eventbusAddress = config.getString("eventbusAddress", "search") //EventBus监听地址
+    vertx.eventBus.consumer[JsonObject](eventbusAddress).handler(handleEventbusMessage) //启动监听Eventbus
+    this.searchEngine = new EngineImpl(indexPath, articlePath)
+      .init(Future.future[Unit]().setHandler(ar =>
+        if (ar.succeeded())
+          promise.success(())
+        else
+          promise.failure(ar.cause())
+      ))
     promise.future
   }
 
@@ -43,10 +47,15 @@ class EventbusSearchVerticle extends ScalaVerticle{
     Try(Method.withName(methodStr)) match {
       case Success(ADD_ARTICLE) => handleAddArticleRequest(msg)
       case Success(SEARCH) => handleSearchRequest(msg)
+      case Success(_) => handleOtherRequest(msg)
       case Failure(cause) =>
         log.error(s"错误的请求方法名:$methodStr, 异常信息:${cause.getMessage}")
         msg.fail(404, s"错误的请求方法名,请求字段'$REQ_METHOD_KEY'=$methodStr")
     }
+  }
+
+  def handleOtherRequest(msg: Message[JsonObject]): Unit = {
+    msg.fail(405, "Unsupported method")
   }
 
   //TODO 完成新增文章到索引的功能,暂时不处理
