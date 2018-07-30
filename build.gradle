@@ -43,7 +43,7 @@ dependencies {
     testRuntime 'org.pegdown:pegdown:1.4.2'
 }
 
-defaultTasks 'clean', 'spec', 'customFatJar'
+defaultTasks 'clean', 'spec', 'jar', 'customFatJar'
 
 //打普通jar包
 jar {

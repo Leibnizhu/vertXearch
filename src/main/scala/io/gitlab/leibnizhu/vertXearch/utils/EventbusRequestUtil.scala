@@ -24,7 +24,7 @@ object EventbusRequestUtil {
     *   REQ_CONTENT_KEY: {
     *     REQ_CONTENT_KEYWORD_KEY: "搜索关键词",
     *     REQ_CONTENT_LENGTH_KEY: "搜索结果最大条数,选填"
-    * }
+    *   }
     * }
     */
   def searchRequest(keyword: String): JsonObject = new JsonObject()
