@@ -106,15 +106,15 @@ java -jar target/lib/vertXearch-0.0.1-fat.jar /path/to/config.json
 ```
 
 ### Eventbus查询接口
-- 地址: 默认是`"search"`, 可以通过配置文件修改,详见`修改配置文件`小节
-- 请求格式: 接收`JsonObject`对象,格式如下:  
+- 地址: 默认是`"search"`, 可以通过配置文件修改,详见[`修改配置文件`](#修改配置文件)小节
+- 请求格式: 接收`JsonObject`对象,格式如下:  
 
 ```json
 {
   "method" : "search",
   "content": {
     "keyword": "搜索关键词",
-    "length": "搜索结果最大条数,正整数,选填"
+    "length": "搜索结果最大条数,正整数,选填"
   }
 }
 ```

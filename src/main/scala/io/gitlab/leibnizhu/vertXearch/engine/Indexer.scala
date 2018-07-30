@@ -93,11 +93,11 @@ class Indexer(indexDirectoryPath: String) {
     Article.fromFile(file, Future.future[Article]().setHandler(ar => {
       if (ar.succeeded()) {
         val article = ar.result()
-        log.info(s"读取到文章(ID=${article.id}, 标题=${article.title})")
+        log.info(s"读取到文章(ID=${article.id})")
         val document = new Document
         document.add(new StringField(ID, article.id, Field.Store.YES))
-        document.add(new TextField(TITLE, article.title, Field.Store.YES))
-        document.add(new Field(AUTHOR, article.author, FieldTypeFactory.storedNotAnalyzed)) //作者不需要分词
+//        document.add(new TextField(TITLE, article.title, Field.Store.YES))
+//        document.add(new Field(AUTHOR, article.author, FieldTypeFactory.storedNotAnalyzed)) //作者不需要分词
         document.add(new TextField(CONTENTS, article.content.toString, Field.Store.YES))
         callback.complete(document)
       } else {
