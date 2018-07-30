@@ -25,21 +25,22 @@ class HttpSearchVerticle extends ScalaVerticle {
   override def startFuture(): concurrent.Future[_] = {
     val promise = Promise[Unit]()
     //初始化工具类/组件
-    val startedFuture = Future.future[Unit]().setHandler(ar => {
+    initComponents(Future.future[Unit]().setHandler(ar => {
       mountRouters() //挂载所有子路由
       startServer(); //启动服务器
-      if (ar.succeeded()) promise.success(()) else promise.failure(ar.cause())
-    })
-    initComponents(startedFuture)
+      if (ar.succeeded())
+        promise.success(())
+      else
+        promise.failure(ar.cause())
+    }))
     promise.future
   }
 
-  private def initComponents(afterSearchEngineStarted: Future[Unit]): Future[Unit] = {
+  private def initComponents(afterSearchEngineStarted: Future[Unit]): Unit = {
     Constants.init(ctx)
     this.mainRouter = Router.router(vertx)
     this.server = vertx.createHttpServer
     this.searchEngine = new EngineImpl(indexPath, articlePath).init(afterSearchEngineStarted)
-    afterSearchEngineStarted
   }
 
   def mountRouters(): Unit = {

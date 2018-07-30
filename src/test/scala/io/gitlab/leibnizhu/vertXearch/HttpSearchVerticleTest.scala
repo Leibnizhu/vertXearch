@@ -2,6 +2,7 @@ package io.gitlab.leibnizhu.vertXearch
 
 import io.gitlab.leibnizhu.vertXearch.verticle.HttpSearchVerticle
 import io.vertx.core.json.JsonObject
+import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.{DeploymentOptions, Future, Vertx}
 import io.vertx.scala.ext.web.client.WebClient
 import org.scalatest.{BeforeAndAfterAll, FlatSpec}
@@ -22,7 +23,7 @@ class HttpSearchVerticleTest extends FlatSpec with BeforeAndAfterAll {
   override def beforeAll: Unit = {
     this.config = new JsonObject(vertx.fileSystem().readFileBlocking(configFile))
     this.port = config.getInteger("serverPort", 8083)
-    val future = vertx.deployVerticleFuture(s"scala:${classOf[HttpSearchVerticle].getName}", DeploymentOptions().setConfig(config))
+    val future = vertx.deployVerticleFuture(ScalaVerticle.nameForVerticle[HttpSearchVerticle], DeploymentOptions().setConfig(config))
     while (!future.isCompleted) {}
   }
 
