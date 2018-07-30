@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory
 
 class LuceneTest extends FlatSpec {
   private val log = LoggerFactory.getLogger(getClass)
-  val indexDir: String = "/Users/leibnizhu/workspace/vertx-cn-website/vertXearch/src/test/data/Index"
-  val dataDir: String = "/Users/leibnizhu/workspace/vertx-cn-website/vertXearch/src/test/data/Articles"
+  val indexDir: String = "src/test/data/Index"
+  val dataDir: String = "src/test/data/Articles"
   var indexer: Indexer = _
   var searcher: Searcher = _
 

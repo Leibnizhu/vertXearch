@@ -20,7 +20,7 @@ class ArticleTest extends AsyncFlatSpec with BeforeAndAfterAll {
   private val log = LoggerFactory.getLogger(getClass)
   private val vertx = Vertx.vertx()
   private val context = vertx.getOrCreateContext()
-  private val configFile = "/Users/leibnizhu/workspace/vertx-cn-website/vertXearch/src/main/resources/config.json"
+  private val configFile = "src/main/resources/config.json"
   private val config: JsonObject = new JsonObject(vertx.fileSystem().readFileBlocking(configFile))
   private val dataPath = config.getString("articlePath")
 

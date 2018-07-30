@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 
 class HttpSearchVerticleTest extends AsyncFlatSpec with BeforeAndAfterAll {
   private val log = LoggerFactory.getLogger(getClass)
-  private val configFile = "/Users/leibnizhu/workspace/vertx-cn-website/vertXearch/src/main/resources/config.json"
+  private val configFile = "src/main/resources/config.json"
   private val vertx = Vertx.vertx()
   private val config = new JsonObject(vertx.fileSystem().readFileBlocking(configFile))
   private val host = "localhost"
