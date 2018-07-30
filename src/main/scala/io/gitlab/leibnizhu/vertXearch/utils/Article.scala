@@ -23,9 +23,10 @@ case class Article(id: String, title: String, author: String, content: String) e
     Constants.vertx.fileSystem().writeFileFuture(fileName, Buffer.buffer(fileContent)).onComplete(callback)
   }
 
-  def toJsonObject(): JsonObject =
-    new JsonObject()
+  def toJsonObject: JsonObject = new JsonObject()
       .put("id", this.id).put("title", this.title).put("author", this.author).put("content", this.content)
+
+  def toLowerCase: Article = Article(this.id.toLowerCase, this.title.toLowerCase, this.author.toLowerCase, this.content.toLowerCase)
 }
 
 object Article {

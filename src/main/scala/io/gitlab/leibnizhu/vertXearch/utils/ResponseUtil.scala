@@ -9,7 +9,7 @@ object ResponseUtil {
   def successSearch(results: List[Article], costTime: Long): JsonObject =
     new JsonObject().
       put("status", "success")
-      .put("results", results.map(_.toJsonObject()).asJava)
+      .put("results", results.map(_.toJsonObject).asJava)
       .put("cost", costTime)
 
   def failSearch(cause: Throwable, costTime: Long): JsonObject =
