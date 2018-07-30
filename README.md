@@ -28,9 +28,9 @@ gradle
 ```json
 {
   /*索引存放位置*/
-  "indexPath":"/Users/leibnizhu/Desktop/Index",
+  "indexPath": "src/test/data/Index",
   /*文章原始文件位置*/
-  "articlePath":"/Users/leibnizhu/Desktop/Data",
+  "articlePath": "src/test/data/Articles",
   /*从articlePath更新索引的时间间隔,单位:秒*/
   "refreshIndexPerSecond": 10,
   /*服务端口*/
@@ -43,6 +43,7 @@ gradle
   "keywordPostTag":"</font>"
 }
 ```
+**注**: 文章使用纯文本文件(后缀为`.txt`), 文件名(不含后缀)为文章ID, 文件内容全部当做文章内容并全做做索引
 
 ### 启动
 默认配置的main类是用于启动http查询接口的,如果要启动eventbus查询接口的,请自行deploy.  
