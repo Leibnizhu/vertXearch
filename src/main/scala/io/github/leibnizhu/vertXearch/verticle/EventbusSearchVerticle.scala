@@ -1,8 +1,6 @@
 package io.github.leibnizhu.vertXearch.verticle
 
 import io.github.leibnizhu.vertXearch.engine.{Engine, EngineImpl}
-import io.github.leibnizhu.vertXearch.utils.{Article, Constants, EventbusRequestUtil}
-import io.github.leibnizhu.vertXearch.engine.{Engine, EngineImpl}
 import io.github.leibnizhu.vertXearch.utils.Constants.{articlePath, indexPath}
 import io.github.leibnizhu.vertXearch.utils.EventbusRequestUtil.Method.{ADD_ARTICLE, SEARCH}
 import io.github.leibnizhu.vertXearch.utils.EventbusRequestUtil._
@@ -17,7 +15,7 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.Promise
 import scala.util.{Failure, Success, Try}
 
-class EventbusSearchVerticle extends ScalaVerticle{
+class EventbusSearchVerticle extends ScalaVerticle {
   private val log = LoggerFactory.getLogger(getClass)
   private var searchEngine: Engine = _
 

@@ -2,7 +2,7 @@ package io.github.leibnizhu.vertXearch.utils
 
 import java.io.File
 
-import Constants.{LINE_SEPARATOR, vertx}
+import io.github.leibnizhu.vertXearch.utils.Constants.vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.json.JsonObject
 import io.vertx.scala.core.Future
@@ -24,7 +24,7 @@ case class Article(id: String, content: String) extends Serializable {
   }
 
   def toJsonObject: JsonObject = new JsonObject()
-      .put("id", this.id).put("content", this.content)
+    .put("id", this.id).put("content", this.content)
 
   def toLowerCase: Article = Article(this.id.toLowerCase, this.content.toLowerCase)
 }
@@ -41,7 +41,7 @@ object Article {
   def fromFile(file: File, handler: Future[Article]): Unit =
     vertx.fileSystem().readFileFuture(file.getAbsolutePath).onComplete {
       case Success(result) =>
-        log.info(s"读取文章文件${file.getName}成功")
+        log.debug(s"读取文章文件${file.getName}成功")
         handler.complete(Article(file, result))
       case Failure(cause) =>
         log.error("读取文章文件失败.", cause)
@@ -61,11 +61,11 @@ object Article {
     val filename = file.getName
     val id = filename.substring(0, filename.lastIndexOf('.'))
     val fileContent = buffer.toString() //2018.07.30 提高通用性,不拆分文件内容了,直接做索引
-//    val fistLineIndex = fileContent.indexOf(LINE_SEPARATOR)
-//    val title = fileContent.substring(0, fistLineIndex)
-//    val secondLineIndex = fileContent.indexOf(LINE_SEPARATOR, fistLineIndex + LINE_SEPARATOR.length)
-//    val author = fileContent.substring(fistLineIndex + LINE_SEPARATOR.length, secondLineIndex)
-//    val content = fileContent.substring(secondLineIndex + LINE_SEPARATOR.length)
+    //    val fistLineIndex = fileContent.indexOf(LINE_SEPARATOR)
+    //    val title = fileContent.substring(0, fistLineIndex)
+    //    val secondLineIndex = fileContent.indexOf(LINE_SEPARATOR, fistLineIndex + LINE_SEPARATOR.length)
+    //    val author = fileContent.substring(fistLineIndex + LINE_SEPARATOR.length, secondLineIndex)
+    //    val content = fileContent.substring(secondLineIndex + LINE_SEPARATOR.length)
     //HanLp区分大小写，所以全转小写
     Article(id, fileContent.toLowerCase)
   }

@@ -11,7 +11,6 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.Try
 
-
 class EngineImpl(indexPath: String, articlePath: String) extends Engine {
   private val log: Logger = LoggerFactory.getLogger(getClass)
   private val indexer: Indexer = new Indexer(indexPath)
@@ -110,9 +109,9 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     val deleted = searcher.getAllDocuments //所有存活的文档
       .filter(doc => !vertx.fileSystem().existsBlocking(articlePath + doc.get(ID) + ".txt")) //过滤出文章文件不存在的
       .map(doc => {
-        log.info(s"发现文档(ID=${doc.get(ID)})在文章目录中已被删除,准备从索引中同步删除...")
-        indexer.deleteDocument(doc.get(ID))
-      }).size
+      log.info(s"发现文档(ID=${doc.get(ID)})在文章目录中已被删除,准备从索引中同步删除...")
+      indexer.deleteDocument(doc.get(ID))
+    }).size
     if (deleted > 0) {
       //有删除的文档索引,需要提交,同时刷新searcher
       indexer.writer.commit()

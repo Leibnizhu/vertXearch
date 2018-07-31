@@ -1,7 +1,6 @@
 package io.github.leibnizhu.vertXearch.engine
 
 import io.github.leibnizhu.vertXearch.utils.Article
-import io.github.leibnizhu.vertXearch.utils.Article
 import io.vertx.scala.core.Future
 
 trait Engine {
@@ -14,7 +13,7 @@ trait Engine {
   /**
     * 删除所有索引
     */
-  def cleanAllIndex():Unit
+  def cleanAllIndex(): Unit
 
   /**
     * 对源目录下所有可用文件进行索引更新
@@ -27,13 +26,13 @@ trait Engine {
     *
     * @param interval 定时间隔
     */
-  def startRefreshTimer(interval: Long):Unit
+  def startRefreshTimer(interval: Long): Unit
 
   /**
     * 按指定关键词进行查找
     *
     * @param searchQuery 查找关键词
-    * @param callback 查询成功后的回调方法, 处理内容为 匹配的文档,按相关度降序
+    * @param callback    查询成功后的回调方法, 处理内容为 匹配的文档,按相关度降序
     */
   def search(searchQuery: String, length: Int, callback: Future[List[Article]]): Unit
 

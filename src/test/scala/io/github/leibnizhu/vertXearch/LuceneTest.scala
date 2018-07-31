@@ -1,7 +1,6 @@
 package io.github.leibnizhu.vertXearch
 
 import io.github.leibnizhu.vertXearch.engine.{Indexer, Searcher}
-import io.github.leibnizhu.vertXearch.engine.{Indexer, Searcher}
 import io.github.leibnizhu.vertXearch.utils.Constants.{CONTENTS, ID, init}
 import io.vertx.scala.core.{Future, Vertx}
 import org.apache.lucene.document.Document
@@ -16,7 +15,7 @@ class LuceneTest extends FlatSpec {
   var searcher: Searcher = _
 
   private val keyWord = "clojure"
-  s"在已经生成索引的情况下,查${keyWord}" should s"返回结果若非空则结果均包含$keyWord" in {
+  s"在已经生成索引的情况下,查$keyWord" should s"返回结果若非空则结果均包含$keyWord" in {
     init(Vertx.vertx().getOrCreateContext())
     val future = createIndex(Future.future[Int]())
     while (!future.isComplete) {}

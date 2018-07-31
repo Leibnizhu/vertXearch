@@ -1,12 +1,11 @@
 package io.github.leibnizhu.vertXearch.utils
 
-import Constants.MAX_SEARCH
+import io.github.leibnizhu.vertXearch.utils.Constants.MAX_SEARCH
 import io.vertx.scala.core.http.HttpServerRequest
 
 import scala.util.Try
 
 object HttpRequestUtil {
-
   val REQ_PARAM_KEYWORD = "keyword"
   val REQ_PARAM_LENGTH = "length"
 

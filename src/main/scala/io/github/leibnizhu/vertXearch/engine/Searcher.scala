@@ -8,12 +8,12 @@ import org.apache.lucene.index.{DirectoryReader, MultiFields}
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
 import org.apache.lucene.search._
 import org.apache.lucene.store.FSDirectory
-class Searcher(indexDirectoryPath: String) {
 
+class Searcher(indexDirectoryPath: String) {
   private val indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath))
   private var reader: DirectoryReader = DirectoryReader.open(indexDirectory)
   var indexSearcher = new IndexSearcher(reader)
-  var queryParser = new MultiFieldQueryParser(Array(/*TITLE, AUTHOR,*/CONTENTS), ANALYZER)
+  var queryParser = new MultiFieldQueryParser(Array(/*TITLE, AUTHOR,*/ CONTENTS), ANALYZER)
 
   def search(searchQuery: String, length: Int = MAX_SEARCH): (Query, List[Document]) = {
     val query = queryParser.parse(searchQuery.toLowerCase)

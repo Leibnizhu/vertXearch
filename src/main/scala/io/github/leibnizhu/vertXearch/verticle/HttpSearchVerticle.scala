@@ -1,8 +1,6 @@
 package io.github.leibnizhu.vertXearch.verticle
 
 import io.github.leibnizhu.vertXearch.engine.{Engine, EngineImpl}
-import io.github.leibnizhu.vertXearch.utils.{Article, Constants}
-import io.github.leibnizhu.vertXearch.engine.EngineImpl
 import io.github.leibnizhu.vertXearch.utils.Constants._
 import io.github.leibnizhu.vertXearch.utils.HttpRequestUtil.{parseRequestParam, _}
 import io.github.leibnizhu.vertXearch.utils.ResponseUtil._
@@ -38,12 +36,15 @@ class HttpSearchVerticle extends ScalaVerticle {
     promise.future
   }
 
-  private def initComponents(afterSearchEngineStarted: Future[Unit]): Unit = {
-    Constants.init(ctx)
-    this.mainRouter = Router.router(vertx)
-    this.server = vertx.createHttpServer
-    this.searchEngine = new EngineImpl(indexPath, articlePath).init(afterSearchEngineStarted)
-  }
+  private def initComponents(afterSearchEngineStarted: Future[Unit]): Unit =
+    try {
+      Constants.init(ctx)
+      this.mainRouter = Router.router(vertx)
+      this.server = vertx.createHttpServer
+      this.searchEngine = new EngineImpl(indexPath, articlePath).init(afterSearchEngineStarted)
+    } catch {
+      case e: Throwable => afterSearchEngineStarted.fail(e)
+    }
 
   def mountRouters(): Unit = {
     mainRouter.get("/static/*").handler(StaticHandler.create.setWebRoot("static"))
@@ -57,18 +58,18 @@ class HttpSearchVerticle extends ScalaVerticle {
     val (keyWord, length) = parseRequestParam(request)
     searchEngine.search(keyWord, length, //防止传入的长度值小于等于0
       Future.future[List[Article]]().setHandler(ar => {
-      val costTime = System.currentTimeMillis() - startTime
-      response.putHeader("content-type", "application/json;charset=UTF-8").end(
-        if (ar.succeeded()) {
-          val results = ar.result()
-          log.debug(s"查询关键词'$keyWord'成功, 查询到${results.size}条结果, 耗时${costTime}毫秒")
-          successSearch(results, costTime).toString
-        } else {
-          val cause = ar.cause()
-          log.error(s"查询关键词'$keyWord'失败, 耗时${costTime}毫秒", cause)
-          failSearch(cause, costTime).toString
-        })
-    }))
+        val costTime = System.currentTimeMillis() - startTime
+        response.putHeader("content-type", "application/json;charset=UTF-8").end(
+          if (ar.succeeded()) {
+            val results = ar.result()
+            log.debug(s"查询关键词'$keyWord'成功, 查询到${results.size}条结果, 耗时${costTime}毫秒")
+            successSearch(results, costTime).toString
+          } else {
+            val cause = ar.cause()
+            log.error(s"查询关键词'$keyWord'失败, 耗时${costTime}毫秒", cause)
+            failSearch(cause, costTime).toString
+          })
+      }))
   }
 
   /**
@@ -82,7 +83,7 @@ class HttpSearchVerticle extends ScalaVerticle {
         searchEngine.startRefreshTimer(refreshTimerInterval)
       case Failure(cause) =>
         log.error("监听{}端口的HTTP服务器失败，原因：{}", Seq[AnyRef](port, cause.getLocalizedMessage): _*)
-      }
+    }
   }
 
   override def stop(): Unit = {

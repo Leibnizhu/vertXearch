@@ -41,7 +41,7 @@ object Constants {
   val LINE_SEPARATOR: String = System.getProperty("line.separator", "\n") //路径分隔符,从系统配置读取
   val ANALYZER: HanLPAnalyzer = new HanLPAnalyzer //分词器,目前用HanLP
 
-  def init(ctx:Context):Unit ={
+  def init(ctx: Context): Unit = {
     this.vertxContext = ctx
     this.vertx = ctx.owner
     this.config = vertxContext.config().get

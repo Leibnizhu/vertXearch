@@ -16,9 +16,9 @@ object MainLauncher {
     System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory")
     System.setProperty("vertx.disableFileCaching", "true")
     val vertx = Vertx.vertx
-    if(args.length == 1){
+    if (args.length == 1) {
       val configFile = args(0)
-      vertx.fileSystem().readFileFuture(configFile).onComplete{
+      vertx.fileSystem().readFileFuture(configFile).onComplete {
         case Success(result) =>
           log.info("读取配置文件{}成功,准备启动Verticle.", configFile)
           vertx.deployVerticle(s"scala:${classOf[HttpSearchVerticle].getName}",

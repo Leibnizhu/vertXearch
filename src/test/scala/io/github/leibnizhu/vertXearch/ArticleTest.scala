@@ -3,7 +3,6 @@ package io.github.leibnizhu.vertXearch
 import java.io.File
 
 import io.github.leibnizhu.vertXearch.utils.{Article, Constants}
-import io.github.leibnizhu.vertXearch.utils.{Article, Constants}
 import io.vertx.core.json.JsonObject
 import io.vertx.scala.core
 import io.vertx.scala.core.Vertx
