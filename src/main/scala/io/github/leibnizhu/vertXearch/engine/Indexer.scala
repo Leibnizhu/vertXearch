@@ -1,10 +1,10 @@
-package io.gitlab.leibnizhu.vertXearch.engine
+package io.github.leibnizhu.vertXearch.engine
 
 import java.io.File
 import java.nio.file.Paths
 
-import io.gitlab.leibnizhu.vertXearch.utils.{Article, FieldTypeFactory}
-import io.gitlab.leibnizhu.vertXearch.utils.Constants._
+import io.github.leibnizhu.vertXearch.utils.Article
+import io.github.leibnizhu.vertXearch.utils.Constants._
 import io.vertx.scala.core.{CompositeFuture, Future}
 import org.apache.lucene.document._
 import org.apache.lucene.index.{IndexWriter, IndexWriterConfig, Term}

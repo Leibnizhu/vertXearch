@@ -1,7 +1,7 @@
-package io.gitlab.leibnizhu.vertXearch
+package io.github.leibnizhu.vertXearch
 
-import io.gitlab.leibnizhu.vertXearch.utils.EventbusRequestUtil._
-import io.gitlab.leibnizhu.vertXearch.verticle.EventbusSearchVerticle
+import io.github.leibnizhu.vertXearch.verticle.EventbusSearchVerticle
+import io.github.leibnizhu.vertXearch.utils.EventbusRequestUtil._
 import io.vertx.core.eventbus.ReplyException
 import io.vertx.core.json.JsonObject
 import io.vertx.lang.scala.ScalaVerticle

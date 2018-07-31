@@ -1,4 +1,4 @@
-package io.gitlab.leibnizhu.vertXearch.utils
+package io.github.leibnizhu.vertXearch.utils
 
 import java.io.File
 

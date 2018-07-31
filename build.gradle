@@ -5,7 +5,7 @@ plugins {
     id 'maven'
 }
 
-group = 'io.gitlab.leibnizhu'
+group = 'io.github.leibnizhu'
 version = '0.0.1'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -44,8 +44,8 @@ defaultTasks 'clean', 'spec', 'jar', 'customFatJar'
 jar {
     manifest {
         attributes 'Manifest-Version': 1.0,
-                'Main-Class': 'io.gitlab.leibnizhu.vertXearch.MainLauncher',
-                'Main-Verticle': 'io.gitlab.leibnizhu.vertXearch.verticle.HttpSearchVerticle'
+                'Main-Class': 'io.github.leibnizhu.vertXearch.MainLauncher',
+                'Main-Verticle': 'io.github.leibnizhu.vertXearch.verticle.HttpSearchVerticle'
     }
 }
 
@@ -53,8 +53,8 @@ jar {
 task customFatJar(type: Jar) {
     manifest {
         attributes 'Manifest-Version': 1.0,
-                'Main-Class': 'io.gitlab.leibnizhu.vertXearch.MainLauncher',
-                'Main-Verticle': 'io.gitlab.leibnizhu.vertXearch.verticle.HttpSearchVerticle'
+                'Main-Class': 'io.github.leibnizhu.vertXearch.MainLauncher',
+                'Main-Verticle': 'io.github.leibnizhu.vertXearch.verticle.HttpSearchVerticle'
     }
     classifier = 'fat'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }

@@ -1,8 +1,8 @@
-package io.gitlab.leibnizhu.vertXearch.utils
+package io.github.leibnizhu.vertXearch.utils
 
 import java.io.File
 
-import io.gitlab.leibnizhu.vertXearch.utils.Constants.{LINE_SEPARATOR, vertx}
+import Constants.{LINE_SEPARATOR, vertx}
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.json.JsonObject
 import io.vertx.scala.core.Future

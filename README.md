@@ -5,8 +5,8 @@
 第一期:Vert.X+Lucene+HanLP,快速构建  
 第二期:考虑使用Vert.X改造Lucene,提高性能  
 目前项目提供了两个Verticle:  
-- `io.gitlab.leibnizhu.vertXearch.verticle.HttpSearchVerticle`: 提供http查询接口, 默认监听8083端口
-- `io.gitlab.leibnizhu.vertXearch.verticle.EventbusSearchVerticle`: 提供Eventbus查询接口, 默认监听地址为`"search"`
+- `io.github.leibnizhu.vertXearch.verticle.HttpSearchVerticle`: 提供http查询接口, 默认监听8083端口
+- `io.github.leibnizhu.vertXearch.verticle.EventbusSearchVerticle`: 提供Eventbus查询接口, 默认监听地址为`"search"`
 
 默认的打包配置里使用http查询接口的Verricle.  
 
