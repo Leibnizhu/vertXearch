@@ -8,7 +8,7 @@
 - `io.github.leibnizhu.vertXearch.verticle.HttpSearchVerticle`: 提供http查询接口, 默认监听8083端口
 - `io.github.leibnizhu.vertXearch.verticle.EventbusSearchVerticle`: 提供Eventbus查询接口, 默认监听地址为`"search"`
 
-默认的打包配置里使用http查询接口的Verricle.  
+默认的打包配置里使用http查询接口的Verticle.  
 
 ## 使用
 本项目已提交到[Maven中央仓库](https://search.maven.org/#artifactdetails%7Cio.github.leibnizhu%7CvertXearch%7C0.0.1%7Cjar), 如果只需要使用Eventbus查询接口,可以直接使用maven依赖即可:  
@@ -29,7 +29,6 @@ compile 'io.github.leibnizhu:vertXearch:0.0.1'
 本项目支持使用`Maven`和`Gradle`进行构建,任选一个就可以.  
 使用`Maven`进行构建:  
 ```bash
-# 使用Maven
 mvn clean package
 ```
 使用`Gradle`进行构建,默认任务是清空,测试并打jar包
@@ -59,7 +58,7 @@ gradle
 ```
 **注**: 文章使用纯文本文件(后缀为`.txt`), 文件名(不含后缀)为文章ID, 文件内容全部当做文章内容并全做做索引
 
-### 作为独立Java应用启动http查询服务
+### 启动http查询服务(作为独立Java应用)
 **注1**: 默认配置的main类是用于启动http查询接口的,如果要启动eventbus查询接口的,请自行deploy.    
 ```bash
 java -jar target/vertXearch-0.0.1-fat.jar /path/to/config.json
@@ -127,7 +126,7 @@ java -jar target/vertXearch-0.0.1-fat.jar /path/to/config.json
   }
 }
 ```
-**注1**: 以上json各个key可以在`EventbusRequestUtil`对象中进行修改.  
+**注1**: 以上json各个key均可在`EventbusRequestUtil`对象中进行修改.  
 **注2**: 可以通过`EventbusRequestUtil`对象的以下方法快速构建请求json对象(由于是单例对象,在Java和Scala中都可以直接通过类名调用以下方法):  
 ```scala
 def searchRequest(keyword: String): JsonObject
