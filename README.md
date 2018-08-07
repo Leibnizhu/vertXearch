@@ -36,8 +36,10 @@ mvn clean package
 gradle
 ```
 
-### 修改配置文件
-将`src/main/resources/config.json`复制到任意地方(以`/path/to/config.json`为例),修改其配置:
+### 配置文件
+配置文件模板位于: `src/main/resources/config.json`  
+Gradle默认任务会将其复制到项目根目录, 运行时可以直接读取到.  
+也可以手动复制到任意地方或整合到现有配置文件(以`/path/to/config.json`为例),修改其配置:
 ```json
 {
   /*索引存放位置*/
@@ -56,12 +58,13 @@ gradle
   "keywordPostTag":"</font>"
 }
 ```
-**注**: 文章使用纯文本文件(后缀为`.txt`), 文件名(不含后缀)为文章ID, 文件内容全部当做文章内容并全做做索引
+**注**: 文章存储在纯文本文件(后缀为`.txt`), 一个txt文件对应一篇文章,文件名(不含后缀)为文章ID, 文件内容全部当做文章内容并全做做索引
 
 ### 启动http查询服务(作为独立Java应用)
 **注1**: 默认配置的main类是用于启动http查询接口的,如果要启动eventbus查询接口的,请自行deploy.    
+**注2**: 配置文件路径可选, 默认读取当前目录下的`config.json`文件,如不存在, 则使用默认值(详见`Constants`代码)   
 ```bash
-java -jar target/vertXearch-0.0.1-fat.jar /path/to/config.json
+java -jar target/vertXearch-0.0.1-fat.jar [/path/to/config.json]
 ```
 提供了一个简单的查询页面: [http://localhost:8083/static/](http://localhost:8083/static/)
 

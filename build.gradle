@@ -35,7 +35,7 @@ dependencies {
     testRuntime 'org.pegdown:pegdown:1.4.2'
 }
 
-defaultTasks 'clean', 'spec', 'jar', 'customFatJar', 'copyJars'
+defaultTasks 'clean', 'spec', 'makeJars'
 
 //打普通jar包
 jar {
@@ -67,5 +67,16 @@ task spec(dependsOn: ['testClasses'], type: JavaExec) {
 task copyJars(type: Copy) {
     from 'target/libs'
     into 'target'
-    delete 'target/libs'
+}
+copyJars.dependsOn jar, customFatJar
+
+task copyConfig(type: Copy) {
+    from 'src/main/resources/config.json'
+    into '.'
+}
+
+// copyConfig.dependsOn jar, customFatJar, copyJars
+task makeJars {
+    dependsOn copyConfig
+    dependsOn copyJars
 }
