@@ -24,6 +24,7 @@
 compile 'io.github.leibnizhu:vertXearch:0.0.1'
 ```
 此时可以跳过下面的[编译打包](#编译打包)步骤.  
+2019-07注:仓库中版本较旧
 
 ### 编译打包
 本项目支持使用`Maven`和`Gradle`进行构建,任选一个就可以.  
@@ -58,7 +59,7 @@ Gradle默认任务会将其复制到项目根目录, 运行时可以直接读取
   "keywordPostTag":"</font>"
 }
 ```
-**注**: 文章存储在纯文本文件(后缀为`.txt`), 一个txt文件对应一篇文章,文件名(不含后缀)为文章ID, 文件内容全部当做文章内容并全做做索引
+**注**: 文章存储在${articlePath} 下的多层目录中的惊悚文件(名为`publication.json`), 一个json文件对应一篇文章,最后一层目录名为文章ID, 文件内容全部当做文章内容并全做做索引. 如 `Articles/2019/07/03/17/0e99eb3f-ccfe-4846-a35e-3749e25e9ea3/publication.json`的ID为`0e99eb3f-ccfe-4846-a35e-3749e25e9ea3`
 
 ### 启动http查询服务(作为独立Java应用)
 **注1**: 默认配置的main类是用于启动http查询接口的,如果要启动eventbus查询接口的,请自行deploy.    
