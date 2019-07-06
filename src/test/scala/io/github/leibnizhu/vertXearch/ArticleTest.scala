@@ -48,7 +48,7 @@ class ArticleTest extends AsyncFlatSpec with BeforeAndAfterAll {
       Article.fromFile(file, core.Future.future[Article]().setHandler(ar => {
         log.info("读取文件" + file.getName + "成功")
         val article = ar.result()
-        promise.complete(Try(ar.succeeded() && article == originArticle.toLowerCase))
+        promise.complete(Try(ar.succeeded() && article.content == originArticle.toLowerCase.content))
       }))
       promise.future
     })).map(list => assert(list.forall(_ == true)))

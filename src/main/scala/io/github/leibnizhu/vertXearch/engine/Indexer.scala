@@ -43,14 +43,8 @@ class Indexer(indexDirectoryPath: String) {
     * @param callback    建立索引成功之后的回调,传入产生的索引数量
     */
   def createIndex(dataDirPath: String, callback: Future[Int]): Unit =
-    createIndex(getFilesRecursively(new File(dataDirPath), Array()), callback)
+    createIndex(Article.getFilesRecursively(new File(dataDirPath)), callback)
 
-  def getFilesRecursively(root: File, all: Array[File]): Array[File] = {
-    (ArrayBuffer[File]() ++= all ++=
-      root.listFiles(file => !file.isDirectory && file.exists && file.canRead && "publication.json".equals(file.getName)) ++=
-      root.listFiles(_.isDirectory).flatMap(getFilesRecursively(_, Array())))
-      .toArray
-  }
 
   /**
     * 读取指定目录下的所有文章,建立索引

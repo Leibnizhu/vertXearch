@@ -77,22 +77,19 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     //从文件读取上次刷新的时间戳
     val lastRefreshTime = getLastIndexTimestamp
     val currentTime = System.currentTimeMillis()
-    //打文章目录
-    val files = new File(articlePath).listFiles()
-    if (files != null && files.nonEmpty) {
-      //找出文章目录里面,存在的,可读的,修改时间大于上次刷新时间戳的txt文件,即需要更新索引的文件
-      val updatedFiles = files.filter(file => !file.isDirectory && file.exists && file.canRead && file.getName.endsWith(".txt") && file.lastModified() - lastRefreshTime >= 0)
-      if (updatedFiles.length > 0) {
-        val future: Future[Int] = Future.future()
-        future.setHandler(ar => {
-          if (ar.succeeded()) log.info("创建索引成功") else log.error("创建索引失败", ar.cause())
-          searcher.refreshIndexSearcher()
-        })
-        indexer.createIndex(updatedFiles, future) //过滤后的文件进行创建/更新索引
-      } else {
-        log.info("没有更新了的文章")
-      }
+    //打文章目录, 找出文章目录里面,存在的,可读的,修改时间大于上次刷新时间戳的txt文件,即需要更新索引的文件
+    val updatedFiles = Article.getFilesRecursively(new File(articlePath)).filter(_.lastModified() - lastRefreshTime >= 0)
+    if (updatedFiles.length > 0) {
+      val future: Future[Int] = Future.future()
+      future.setHandler(ar => {
+        if (ar.succeeded()) log.info("创建索引成功") else log.error("创建索引失败", ar.cause())
+        searcher.refreshIndexSearcher()
+      })
+      indexer.createIndex(updatedFiles, future) //过滤后的文件进行创建/更新索引
+    } else {
+      log.info("没有更新了的文章")
     }
+    log.info(s"目前索引的文档总数为:${indexer.writer.maxDoc}篇")
     //将本次更新的时间戳写入到文件
     setCurrentIndexTimestamp(currentTime)
   }
@@ -111,7 +108,7 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
       .map(doc => {
       log.info(s"发现文档(ID=${doc.get(ID)})在文章目录中已被删除,准备从索引中同步删除...")
       indexer.deleteDocument(doc.get(ID))
-    }).size
+  }).size
     if (deleted > 0) {
       //有删除的文档索引,需要提交,同时刷新searcher
       indexer.writer.commit()

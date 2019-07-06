@@ -8,6 +8,7 @@ import io.vertx.lang.scala.json.JsonObject
 import io.vertx.scala.core.Future
 import org.slf4j.LoggerFactory
 
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
 
@@ -68,5 +69,12 @@ object Article {
     //    val content = fileContent.substring(secondLineIndex + LINE_SEPARATOR.length)
     //HanLp区分大小写，所以全转小写
     Article(id, fileContent.toLowerCase, file.getAbsolutePath)
+  }
+
+  def getFilesRecursively(root: File): Array[File] = {
+    (ArrayBuffer[File]() ++=
+      root.listFiles(file => !file.isDirectory && file.exists && file.canRead && "publication.json".equals(file.getName)) ++=
+      root.listFiles(_.isDirectory).flatMap(getFilesRecursively))
+      .toArray
   }
 }
