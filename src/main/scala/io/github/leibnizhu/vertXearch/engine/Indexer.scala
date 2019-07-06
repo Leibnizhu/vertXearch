@@ -11,6 +11,8 @@ import org.apache.lucene.index.{IndexWriter, IndexWriterConfig, Term}
 import org.apache.lucene.store.FSDirectory
 import org.slf4j.LoggerFactory
 
+import scala.collection.mutable.ArrayBuffer
+
 class Indexer(indexDirectoryPath: String) {
   private val log = LoggerFactory.getLogger(getClass)
   private val indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath))
@@ -41,9 +43,14 @@ class Indexer(indexDirectoryPath: String) {
     * @param callback    建立索引成功之后的回调,传入产生的索引数量
     */
   def createIndex(dataDirPath: String, callback: Future[Int]): Unit =
-    createIndex(new File(dataDirPath).listFiles
-      .filter(file => !file.isDirectory && file.exists && file.canRead && file.getName.endsWith(".txt")),
-      callback)
+    createIndex(getFilesRecursively(new File(dataDirPath), Array()), callback)
+
+  def getFilesRecursively(root: File, all: Array[File]): Array[File] = {
+    (ArrayBuffer[File]() ++= all ++=
+      root.listFiles(file => !file.isDirectory && file.exists && file.canRead && "publication.json".equals(file.getName)) ++=
+      root.listFiles(_.isDirectory).flatMap(getFilesRecursively(_, Array())))
+      .toArray
+  }
 
   /**
     * 读取指定目录下的所有文章,建立索引
@@ -96,6 +103,7 @@ class Indexer(indexDirectoryPath: String) {
         log.info(s"读取到文章(ID=${article.id})")
         val document = new Document
         document.add(new StringField(ID, article.id, Field.Store.YES))
+        document.add(new StringField(PATH, article.path, Field.Store.YES))
         //        document.add(new TextField(TITLE, article.title, Field.Store.YES))
         //        document.add(new Field(AUTHOR, article.author, FieldTypeFactory.storedNotAnalyzed)) //作者不需要分词
         document.add(new TextField(CONTENTS, article.content.toString, Field.Store.YES))

@@ -11,9 +11,10 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
 
-case class Article(id: String, content: String) extends Serializable {
+case class Article(id: String, content: String, path: String = null) extends Serializable {
   /**
     * 将Article对象写入到文件,目录由配置文件指定
+    * TODO 按最新路径规则修改
     *
     * @param callback 写入到文件之后的回调,无传入结果
     */
@@ -41,7 +42,7 @@ object Article {
   def fromFile(file: File, handler: Future[Article]): Unit =
     vertx.fileSystem().readFileFuture(file.getAbsolutePath).onComplete {
       case Success(result) =>
-        log.debug(s"读取文章文件${file.getName}成功")
+        log.debug(s"读取文章文件${file.getAbsolutePath}成功")
         handler.complete(Article(file, result))
       case Failure(cause) =>
         log.error("读取文章文件失败.", cause)
@@ -58,8 +59,7 @@ object Article {
     * @return
     */
   def apply(file: File, buffer: Buffer): Article = {
-    val filename = file.getName
-    val id = filename.substring(0, filename.lastIndexOf('.'))
+    val id = file.getParentFile.getName
     val fileContent = buffer.toString() //2018.07.30 提高通用性,不拆分文件内容了,直接做索引
     //    val fistLineIndex = fileContent.indexOf(LINE_SEPARATOR)
     //    val title = fileContent.substring(0, fistLineIndex)
@@ -67,6 +67,6 @@ object Article {
     //    val author = fileContent.substring(fistLineIndex + LINE_SEPARATOR.length, secondLineIndex)
     //    val content = fileContent.substring(secondLineIndex + LINE_SEPARATOR.length)
     //HanLp区分大小写，所以全转小写
-    Article(id, fileContent.toLowerCase)
+    Article(id, fileContent.toLowerCase, file.getAbsolutePath)
   }
 }

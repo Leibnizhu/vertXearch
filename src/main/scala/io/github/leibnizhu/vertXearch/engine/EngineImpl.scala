@@ -107,7 +107,7 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     */
   def cleanDeletedArticles(): Unit = {
     val deleted = searcher.getAllDocuments //所有存活的文档
-      .filter(doc => !vertx.fileSystem().existsBlocking(articlePath + doc.get(ID) + ".txt")) //过滤出文章文件不存在的
+      .filter(doc => !vertx.fileSystem().existsBlocking(doc.get(PATH))) //过滤出文章文件不存在的
       .map(doc => {
       log.info(s"发现文档(ID=${doc.get(ID)})在文章目录中已被删除,准备从索引中同步删除...")
       indexer.deleteDocument(doc.get(ID))

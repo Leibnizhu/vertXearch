@@ -31,6 +31,7 @@ object Constants {
   //  val TITLE: String = "title" //文章标题key
   //  val AUTHOR: String = "author" //文章作者key
   val CONTENTS: String = "contents" //文章内容key
+  val PATH: String = "path" //文章完整路径
 
   /**
     * 模块的一些配置, 也基本不需要动
