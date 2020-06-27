@@ -259,8 +259,8 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>io.github.leibnizhu.vertXearch.MainLauncher</Main-Class>
-                                        <Main-Verticle>io.github.leibnizhu.vertXearch.verticle.HttpSearchVerticle</Main-Verticle>
+                                        <Main-Class>io.github.leibnizhu.vertxearch.MainLauncher</Main-Class>
+                                        <Main-Verticle>io.github.leibnizhu.vertxearch.verticle.HttpSearchVerticle</Main-Verticle>
                                     </manifestEntries>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">

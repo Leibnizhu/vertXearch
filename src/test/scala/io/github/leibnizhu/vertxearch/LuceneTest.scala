@@ -1,7 +1,7 @@
-package io.github.leibnizhu.vertXearch
+package io.github.leibnizhu.vertxearch
 
-import io.github.leibnizhu.vertXearch.engine.{Indexer, Searcher}
-import io.github.leibnizhu.vertXearch.utils.Constants.{CONTENTS, ID, init}
+import io.github.leibnizhu.vertxearch.engine.{Indexer, Searcher}
+import io.github.leibnizhu.vertxearch.utils.Constants.{CONTENTS, ID, init}
 import io.vertx.scala.core.{Future, Vertx}
 import org.apache.lucene.document.Document
 import org.scalatest.FlatSpec

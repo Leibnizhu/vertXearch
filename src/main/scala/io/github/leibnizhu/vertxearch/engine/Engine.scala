@@ -1,6 +1,6 @@
-package io.github.leibnizhu.vertXearch.engine
+package io.github.leibnizhu.vertxearch.engine
 
-import io.github.leibnizhu.vertXearch.utils.Article
+import io.github.leibnizhu.vertxearch.utils.Article
 import io.vertx.scala.core.Future
 
 trait Engine {

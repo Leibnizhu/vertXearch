@@ -1,10 +1,10 @@
-package io.github.leibnizhu.vertXearch.verticle
+package io.github.leibnizhu.vertxearch.verticle
 
-import io.github.leibnizhu.vertXearch.engine.{Engine, EngineImpl}
-import io.github.leibnizhu.vertXearch.utils.Constants._
-import io.github.leibnizhu.vertXearch.utils.HttpRequestUtil.{parseRequestParam, _}
-import io.github.leibnizhu.vertXearch.utils.ResponseUtil._
-import io.github.leibnizhu.vertXearch.utils.{Article, Constants}
+import io.github.leibnizhu.vertxearch.engine.{Engine, EngineImpl}
+import io.github.leibnizhu.vertxearch.utils.Constants._
+import io.github.leibnizhu.vertxearch.utils.HttpRequestUtil.{parseRequestParam, _}
+import io.github.leibnizhu.vertxearch.utils.ResponseUtil._
+import io.github.leibnizhu.vertxearch.utils.{Article, Constants}
 import io.vertx.core.Handler
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.Future

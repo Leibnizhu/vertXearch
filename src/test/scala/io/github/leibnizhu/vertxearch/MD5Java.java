@@ -1,4 +1,4 @@
-package io.github.leibnizhu.vertXearch;
+package io.github.leibnizhu.vertxearch;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

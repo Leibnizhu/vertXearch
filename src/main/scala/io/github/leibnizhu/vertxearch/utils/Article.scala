@@ -1,8 +1,8 @@
-package io.github.leibnizhu.vertXearch.utils
+package io.github.leibnizhu.vertxearch.utils
 
 import java.io.File
 
-import io.github.leibnizhu.vertXearch.utils.Constants.vertx
+import io.github.leibnizhu.vertxearch.utils.Constants.vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.lang.scala.json.JsonObject
 import io.vertx.scala.core.Future

@@ -1,4 +1,4 @@
-package io.github.leibnizhu.vertXearch.utils
+package io.github.leibnizhu.vertxearch.utils
 
 import io.vertx.lang.scala.json.JsonObject
 

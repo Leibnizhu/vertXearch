@@ -1,6 +1,6 @@
-package io.github.leibnizhu.vertXearch
+package io.github.leibnizhu.vertxearch
 
-import io.github.leibnizhu.vertXearch.verticle.HttpSearchVerticle
+import io.github.leibnizhu.vertxearch.verticle.HttpSearchVerticle
 import io.vertx.core.json.JsonObject
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.{DeploymentOptions, Vertx}

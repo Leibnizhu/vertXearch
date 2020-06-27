@@ -1,8 +1,8 @@
-package io.github.leibnizhu.vertXearch.engine
+package io.github.leibnizhu.vertxearch.engine
 
 import java.nio.file.Paths
 
-import io.github.leibnizhu.vertXearch.utils.Constants._
+import io.github.leibnizhu.vertxearch.utils.Constants._
 import org.apache.lucene.document.Document
 import org.apache.lucene.index.{DirectoryReader, MultiFields}
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser

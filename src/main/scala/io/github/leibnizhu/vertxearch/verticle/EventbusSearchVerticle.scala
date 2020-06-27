@@ -1,11 +1,11 @@
-package io.github.leibnizhu.vertXearch.verticle
+package io.github.leibnizhu.vertxearch.verticle
 
-import io.github.leibnizhu.vertXearch.engine.{Engine, EngineImpl}
-import io.github.leibnizhu.vertXearch.utils.Constants.{articlePath, indexPath}
-import io.github.leibnizhu.vertXearch.utils.EventbusRequestUtil.Method.{ADD_ARTICLE, SEARCH}
-import io.github.leibnizhu.vertXearch.utils.EventbusRequestUtil._
-import io.github.leibnizhu.vertXearch.utils.ResponseUtil.{failSearch, successSearch}
-import io.github.leibnizhu.vertXearch.utils.{Article, Constants, EventbusRequestUtil}
+import io.github.leibnizhu.vertxearch.engine.{Engine, EngineImpl}
+import io.github.leibnizhu.vertxearch.utils.Constants.{articlePath, indexPath}
+import io.github.leibnizhu.vertxearch.utils.EventbusRequestUtil.Method.{ADD_ARTICLE, SEARCH}
+import io.github.leibnizhu.vertxearch.utils.EventbusRequestUtil._
+import io.github.leibnizhu.vertxearch.utils.ResponseUtil.{failSearch, successSearch}
+import io.github.leibnizhu.vertxearch.utils.{Article, Constants, EventbusRequestUtil}
 import io.vertx.core.json.JsonObject
 import io.vertx.lang.scala.ScalaVerticle
 import io.vertx.scala.core.Future

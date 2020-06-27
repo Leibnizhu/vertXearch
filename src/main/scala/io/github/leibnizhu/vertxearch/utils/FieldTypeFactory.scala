@@ -1,4 +1,4 @@
-package io.github.leibnizhu.vertXearch.utils
+package io.github.leibnizhu.vertxearch.utils
 
 import org.apache.lucene.document.{FieldType, StringField}
 import org.apache.lucene.index.IndexOptions

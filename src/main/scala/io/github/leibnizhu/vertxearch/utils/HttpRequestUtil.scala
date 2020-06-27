@@ -1,6 +1,6 @@
-package io.github.leibnizhu.vertXearch.utils
+package io.github.leibnizhu.vertxearch.utils
 
-import io.github.leibnizhu.vertXearch.utils.Constants.MAX_SEARCH
+import io.github.leibnizhu.vertxearch.utils.Constants.MAX_SEARCH
 import io.vertx.scala.core.http.HttpServerRequest
 
 import scala.util.Try
