@@ -41,8 +41,8 @@ defaultTasks 'clean', 'spec', 'makeJars'
 jar {
     manifest {
         attributes 'Manifest-Version': 1.0,
-                'Main-Class': 'io.github.leibnizhu.vertXearch.MainLauncher',
-                'Main-Verticle': 'io.github.leibnizhu.vertXearch.verticle.HttpSearchVerticle'
+                'Main-Class': 'io.github.leibnizhu.vertxearch.MainLauncher',
+                'Main-Verticle': 'io.github.leibnizhu.vertxearch.verticle.HttpSearchVerticle'
     }
 }
 
@@ -50,8 +50,8 @@ jar {
 task customFatJar(type: Jar) {
     manifest {
         attributes 'Manifest-Version': 1.0,
-                'Main-Class': 'io.github.leibnizhu.vertXearch.MainLauncher',
-                'Main-Verticle': 'io.github.leibnizhu.vertXearch.verticle.HttpSearchVerticle'
+                'Main-Class': 'io.github.leibnizhu.vertxearch.MainLauncher',
+                'Main-Verticle': 'io.github.leibnizhu.vertxearch.verticle.HttpSearchVerticle'
     }
     classifier = 'fat'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
