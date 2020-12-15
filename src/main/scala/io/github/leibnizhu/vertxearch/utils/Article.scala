@@ -2,15 +2,12 @@ package io.github.leibnizhu.vertxearch.utils
 
 import java.io.File
 
-import io.github.leibnizhu.vertxearch.utils.Constants.vertx
 import io.vertx.core.buffer.Buffer
-import io.vertx.lang.scala.json.JsonObject
-import io.vertx.scala.core.Future
+import io.vertx.core.json.JsonObject
+import io.vertx.core.{AsyncResult, Future, Handler, Promise, Vertx}
 import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success, Try}
 
 case class Article(id: String, content: String, path: String = null) extends Serializable {
   /**
@@ -19,10 +16,10 @@ case class Article(id: String, content: String, path: String = null) extends Ser
     *
     * @param callback 写入到文件之后的回调,无传入结果
     */
-  def writeToFile(callback: Try[Unit] => Unit): Unit = {
+  def writeToFile(vertx: Vertx, callback: Handler[AsyncResult[Void]]): Unit = {
     val fileName = Constants.articlePath + "/" + this.id + ".txt"
     val fileContent = this.content
-    Constants.vertx.fileSystem().writeFileFuture(fileName, Buffer.buffer(fileContent)).onComplete(callback)
+    vertx.fileSystem().writeFile(fileName, Buffer.buffer(fileContent)).onComplete(callback)
   }
 
   def toJsonObject: JsonObject = new JsonObject()
@@ -40,15 +37,17 @@ object Article {
     * @param file    文章txt文件
     * @param handler 读取文章之后的回调,传入解析到的Article
     */
-  def fromFile(file: File, handler: Future[Article]): Unit =
-    vertx.fileSystem().readFileFuture(file.getAbsolutePath).onComplete {
-      case Success(result) =>
+  def fromFile(vertx:Vertx, file: File, handler: Handler[AsyncResult[Article]]): Unit =
+    vertx.fileSystem().readFile(file.getAbsolutePath).onComplete((ar: AsyncResult[Buffer]) => {
+      if (ar.succeeded()) {
         log.debug(s"读取文章文件${file.getAbsolutePath}成功")
-        handler.complete(Article(file, result))
-      case Failure(cause) =>
-        log.error("读取文章文件失败.", cause)
-        handler.fail(cause)
-    }
+        val article = Article(file, ar.result())
+        handler.handle(Future.succeededFuture(article))
+      } else {
+        log.error("读取文章文件失败.", ar.cause())
+        handler.handle(Future.failedFuture(ar.cause()))
+      }
+    })
 
   /**
     * 解析文章

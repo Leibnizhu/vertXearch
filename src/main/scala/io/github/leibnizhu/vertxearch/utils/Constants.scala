@@ -4,16 +4,9 @@ import java.io.File
 
 import com.hankcs.lucene.HanLPAnalyzer
 import io.vertx.core.json.JsonObject
-import io.vertx.scala.core.{Context, Vertx}
+import io.vertx.core.{Context, Vertx}
 
 object Constants {
-  /**
-    * Vert.X变量
-    */
-  var vertx: Vertx = _
-  private var vertxContext: Context = _
-  private var config: JsonObject = _
-
   /**
     * 从配置文件读取到的配置
     */
@@ -42,18 +35,15 @@ object Constants {
   val LINE_SEPARATOR: String = System.getProperty("line.separator", "\n") //路径分隔符,从系统配置读取
   val ANALYZER: HanLPAnalyzer = new HanLPAnalyzer //分词器,目前用HanLP
 
-  def init(ctx: Context): Unit = {
-    this.vertxContext = ctx
-    this.vertx = ctx.owner
-    this.config = vertxContext.config().get
+  def init(config: JsonObject): Unit = {
     this.indexPath = config.getString("indexPath", "indexes")
     this.articlePath = config.getString("articlePath", "articles")
     //确保路径以/结尾
     if (!this.indexPath.endsWith(File.separator)) this.indexPath += File.separator
     if (!this.articlePath.endsWith(File.separator)) this.articlePath += File.separator
     this.timestampFile = s"${this.indexPath}index.ts"
-    this.refreshTimerInterval = this.config.getInteger("refreshIndexPerSecond", 300) * 1000L //默认5分钟
-    this.keywordPreTag = this.config.getString("keywordPreTag", "<font color='red'>") //默认弄成红色字体
-    this.keywordPostTag = this.config.getString("keywordPostTag", "</font>")
+    this.refreshTimerInterval = config.getInteger("refreshIndexPerSecond", 300) * 1000L //默认5分钟
+    this.keywordPreTag = config.getString("keywordPreTag", "<font color='red'>") //默认弄成红色字体
+    this.keywordPostTag = config.getString("keywordPostTag", "</font>")
   }
 }

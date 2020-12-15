@@ -1,14 +1,21 @@
 package io.github.leibnizhu.vertxearch
 
 import io.github.leibnizhu.vertxearch.engine.{Indexer, Searcher}
-import io.github.leibnizhu.vertxearch.utils.Constants.{CONTENTS, ID, init}
-import io.vertx.scala.core.{Future, Vertx}
+import io.github.leibnizhu.vertxearch.utils.Constants
+import io.github.leibnizhu.vertxearch.utils.Constants.{CONTENTS, ID}
+import io.vertx.core.json.JsonObject
+import io.vertx.core.{AsyncResult, Handler, Vertx}
 import org.apache.lucene.document.Document
-import org.scalatest.FlatSpec
+import org.scalatest.{Assertion, AsyncFlatSpec}
 import org.slf4j.LoggerFactory
 
-class LuceneTest extends FlatSpec {
+import scala.concurrent.Promise
+
+class LuceneTest extends AsyncFlatSpec {
   private val log = LoggerFactory.getLogger(getClass)
+  private val vertx = Vertx.vertx()
+  private val configFile = "src/main/resources/config.json"
+  private val config: JsonObject = new JsonObject(vertx.fileSystem().readFileBlocking(configFile))
   val indexDir: String = "src/test/data/Index"
   val dataDir: String = "src/test/data/Articles"
   var indexer: Indexer = _
@@ -16,12 +23,18 @@ class LuceneTest extends FlatSpec {
 
   private val keyWord = "clojure"
   s"在已经生成索引的情况下,查$keyWord" should s"返回结果若非空则结果均包含$keyWord" in {
-    init(Vertx.vertx().getOrCreateContext())
-    val future = createIndex(Future.future[Int]())
-    while (!future.isComplete) {}
-    val documents = search(keyWord)
-    if (documents.nonEmpty)
-      assert(documents.forall(_.get(CONTENTS).contains(keyWord)))
+    Constants.init(config)
+    val promise = Promise.apply[Assertion]()
+    createIndex((_: AsyncResult[Int]) => {
+      val documents = search(keyWord)
+//      log.info("hits:{}", documents)
+      if (documents.nonEmpty) {
+        promise.success(assert(documents.forall(_.get(CONTENTS).contains(keyWord))))
+      } else {
+        promise.failure(new RuntimeException("查不到结果"))
+      }
+    })
+    promise.future
   }
 
   private def search(searchQuery: String): List[Document] = {
@@ -35,21 +48,21 @@ class LuceneTest extends FlatSpec {
     hitDocs
   }
 
-  private def createIndex(handler: Future[Int]): Future[Int] = {
-    indexer = new Indexer(indexDir)
+  private def createIndex(handler: Handler[AsyncResult[Int]]): Unit = {
+    indexer = new Indexer(vertx, indexDir)
     indexer.cleanAllIndex()
     var numIndexed = 0
     val startTime = System.currentTimeMillis
-    val future = Future.future[Int]().setHandler(ar => {
+    indexer.createIndex(dataDir, (ar: AsyncResult[Int]) => {
       if (ar.succeeded()) {
         numIndexed = ar.result()
         val endTime = System.currentTimeMillis
         log.info(s"给${numIndexed}篇文章建立了索引, 耗时:${endTime - startTime} ms.")
         indexer.close()
-        handler.complete(numIndexed)
+        handler.handle(io.vertx.core.Future.succeededFuture(numIndexed))
+      } else {
+        handler.handle(io.vertx.core.Future.failedFuture(ar.cause()))
       }
     })
-    indexer.createIndex(dataDir, future)
-    handler
   }
 }

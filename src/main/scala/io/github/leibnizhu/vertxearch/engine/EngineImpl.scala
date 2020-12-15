@@ -5,15 +5,15 @@ import java.io.File
 import io.github.leibnizhu.vertxearch.utils.Article
 import io.github.leibnizhu.vertxearch.utils.Constants._
 import io.vertx.core.buffer.Buffer
-import io.vertx.scala.core.Future
+import io.vertx.core.{AsyncResult, Future, Handler, Vertx}
 import org.apache.lucene.search.highlight._
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.Try
 
-class EngineImpl(indexPath: String, articlePath: String) extends Engine {
+class EngineImpl(vertx: Vertx, indexPath: String, articlePath: String) extends Engine {
   private val log: Logger = LoggerFactory.getLogger(getClass)
-  private val indexer: Indexer = new Indexer(indexPath)
+  private val indexer: Indexer = new Indexer(vertx, indexPath)
   private var searcher: Searcher = _
   private val formatter: Formatter = new SimpleHTMLFormatter(keywordPreTag, keywordPostTag)
   private val fragmenter: Fragmenter = new SimpleFragmenter(150)
@@ -22,22 +22,27 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     * 初始化完毕后建立索引,然后初始化Searcher
     * 以保证Searcher可以顺利初始化
     */
-  def init(afterInit: Future[Unit]): Engine = {
+  def init(afterInit: Handler[AsyncResult[Unit]]): Engine = {
     prepareDictionaries()
     val lostIndex = getLastIndexTimestamp == 0
-    val future: Future[Int] = Future.future() //建立索引的Future
-    future.setHandler(_ => {
-      if (lostIndex) setCurrentIndexTimestamp(System.currentTimeMillis())
-      this.searcher = new Searcher(indexPath)
-      log.info("搜索引擎EngineImpl启动完毕")
-      afterInit.complete()
-    })
+    //如果lostIndex先 indexer.createIndex，然后再new Searcher，回调afterInit
     if (lostIndex) {
       log.info("索引文件疑似丢失,准备重建索引...")
-      indexer.createIndex(articlePath, future)
+      indexer.createIndex(articlePath, (ar: AsyncResult[Int]) => {
+        if (ar.succeeded()) {
+          setCurrentIndexTimestamp(System.currentTimeMillis())
+          this.searcher = new Searcher(indexPath)
+          log.info("搜索引擎EngineImpl启动完毕")
+          afterInit.handle(Future.succeededFuture())
+        } else {
+          afterInit.handle(Future.failedFuture(ar.cause()))
+        }
+      })
     } else {
       log.info("索引文件存在,无需重建...")
-      future.complete(0)
+      this.searcher = new Searcher(indexPath)
+      log.info("搜索引擎EngineImpl启动完毕")
+      afterInit.handle(Future.succeededFuture())
     }
     this
   }
@@ -58,9 +63,13 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     * @return 增加索引的文件数量
     */
   override def createIndex(): Unit = {
-    val future: Future[Int] = Future.future()
-    future.setHandler(ar => if (ar.succeeded()) log.info("创建索引成功") else log.error("创建索引失败", ar.cause()))
-    indexer.createIndex(articlePath, future)
+    indexer.createIndex(articlePath, (ar: AsyncResult[Int]) => {
+      if (ar.succeeded()) {
+        log.info("创建索引成功")
+      } else {
+        log.error("创建索引失败", ar.cause())
+      }
+    })
   }
 
   /**
@@ -80,12 +89,10 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     //打文章目录, 找出文章目录里面,存在的,可读的,修改时间大于上次刷新时间戳的txt文件,即需要更新索引的文件
     val updatedFiles = Article.getFilesRecursively(new File(articlePath)).filter(_.lastModified() - lastRefreshTime >= 0)
     if (updatedFiles.length > 0) {
-      val future: Future[Int] = Future.future()
-      future.setHandler(ar => {
+      indexer.createIndex(updatedFiles, (ar: AsyncResult[Int]) => {
         if (ar.succeeded()) log.info("创建索引成功") else log.error("创建索引失败", ar.cause())
-        searcher.refreshIndexSearcher()
+        searcher.refreshIndexSearcher() //过滤后的文件进行创建/更新索引
       })
-      indexer.createIndex(updatedFiles, future) //过滤后的文件进行创建/更新索引
     } else {
       log.info("没有更新了的文章")
     }
@@ -140,7 +147,7 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
     * @param searchQuery 查找关键词
     * @return 匹配的文档,按相关度降序
     */
-  override def search(searchQuery: String, length: Int, callback: Future[List[Article]]): Unit = {
+  override def search(searchQuery: String, length: Int, callback: Handler[AsyncResult[List[Article]]]): Unit = {
     handleTryWithFuture(Try({
       val (query, docs) = searcher.search(searchQuery.toLowerCase(), length)
       //设置高亮格式//设置高亮格式
@@ -172,16 +179,16 @@ class EngineImpl(indexPath: String, articlePath: String) extends Engine {
   /**
     * 关闭搜索引擎
     */
-  override def stop(callback: Future[Unit]): Unit =
+  override def stop(callback: Handler[AsyncResult[Unit]]): Unit =
     handleTryWithFuture(Try({
       indexer.close()
       searcher.close()
     }), callback)
 
 
-  def handleTryWithFuture[T](tryObj: Try[T], callback: Future[T]): Unit =
+  def handleTryWithFuture[T](tryObj: Try[T], callback: Handler[AsyncResult[T]]): Unit =
     if (tryObj.isSuccess)
-      callback.complete(tryObj.get)
+      callback.handle(Future.succeededFuture(tryObj.get))
     else
-      callback.fail(tryObj.failed.get)
+      callback.handle(Future.failedFuture(tryObj.failed.get))
 }

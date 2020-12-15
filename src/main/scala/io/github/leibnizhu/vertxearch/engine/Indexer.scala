@@ -5,15 +5,15 @@ import java.nio.file.Paths
 
 import io.github.leibnizhu.vertxearch.utils.Article
 import io.github.leibnizhu.vertxearch.utils.Constants._
-import io.vertx.scala.core.{CompositeFuture, Future}
+import io.vertx.core._
 import org.apache.lucene.document._
 import org.apache.lucene.index.{IndexWriter, IndexWriterConfig, Term}
 import org.apache.lucene.store.FSDirectory
 import org.slf4j.LoggerFactory
 
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.JavaConverters._
 
-class Indexer(indexDirectoryPath: String) {
+class Indexer(vertx:Vertx, indexDirectoryPath: String) {
   private val log = LoggerFactory.getLogger(getClass)
   private val indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath))
   val writer: IndexWriter = new IndexWriter(indexDirectory, new IndexWriterConfig(ANALYZER))
@@ -42,7 +42,7 @@ class Indexer(indexDirectoryPath: String) {
     * @param dataDirPath 存储文章txt文件的目录
     * @param callback    建立索引成功之后的回调,传入产生的索引数量
     */
-  def createIndex(dataDirPath: String, callback: Future[Int]): Unit =
+  def createIndex(dataDirPath: String, callback: Handler[AsyncResult[Int]]): Unit =
     createIndex(Article.getFilesRecursively(new File(dataDirPath)), callback)
 
 
@@ -52,34 +52,35 @@ class Indexer(indexDirectoryPath: String) {
     * @param files    需要加入索引的文章txt文件
     * @param callback 建立索引成功之后的回调,传入产生的索引数量
     */
-  def createIndex(files: Array[File], callback: Future[Int]): Unit =
-    CompositeFuture.all(files.map(indexFile(_, Future.future[Boolean]())).toBuffer)
-      .setHandler(ar =>
+  def createIndex(files: Array[File], callback: Handler[AsyncResult[Int]]): Unit = {
+    CompositeFuture.join(files.map(indexFile).toList.asInstanceOf[List[Future[_]]].asJava)
+      .onComplete((ar: AsyncResult[CompositeFuture]) =>
         if (ar.succeeded()) {
           writer.commit()
-          callback.complete(writer.numDocs)
+          callback.handle(Future.succeededFuture(writer.numDocs))
         } else {
-          callback.fail(ar.cause())
+          callback.handle(Future.failedFuture(ar.cause()))
         })
+  }
 
   /**
     * 添加单个文件索引到Writer
     *
-    * @param file     文章文件
-    * @param callback 加入writer之后的回调,传入是否成功
+    * @param file 文章文件
     */
-  private def indexFile(file: File, callback: Future[Boolean]): Future[Boolean] = {
-    readDocument(file, Future.future[Document]().setHandler(ar => {
+  private def indexFile(file: File): Future[Boolean] = {
+    val promise = Promise.promise[Boolean]();
+    readDocument(file, (ar: AsyncResult[Document]) => {
       if (ar.succeeded()) {
         val doc = ar.result()
         //创建前尝试先删除已有的 writer.deleteDocuments(new Term(ID, doc.get(ID)))
         writer.updateDocument(new Term(ID, doc.get(ID)), doc)
-        callback.complete(true)
+        promise.complete(true)
       } else {
-        callback.fail(ar.cause())
+        promise.fail(ar.cause())
       }
-    }))
-    callback
+    })
+    promise.future()
   }
 
   /**
@@ -90,8 +91,8 @@ class Indexer(indexDirectoryPath: String) {
     * @param file     文章文件
     * @param callback 创建Document之后的回调,传入Document
     */
-  private def readDocument(file: File, callback: Future[Document]): Unit = {
-    Article.fromFile(file, Future.future[Article]().setHandler(ar => {
+  private def readDocument(file: File, callback: Handler[AsyncResult[Document]]): Unit = {
+    Article.fromFile(vertx, file, (ar: AsyncResult[Article]) => {
       if (ar.succeeded()) {
         val article = ar.result()
         log.info(s"读取到文章(ID=${article.id})")
@@ -101,11 +102,11 @@ class Indexer(indexDirectoryPath: String) {
         //        document.add(new TextField(TITLE, article.title, Field.Store.YES))
         //        document.add(new Field(AUTHOR, article.author, FieldTypeFactory.storedNotAnalyzed)) //作者不需要分词
         document.add(new TextField(CONTENTS, article.content.toString, Field.Store.YES))
-        callback.complete(document)
+        callback.handle(Future.succeededFuture(document))
       } else {
         log.error("读取文章文件失败.", ar.cause())
-        callback.fail(ar.cause())
+        callback.handle(Future.failedFuture(ar.cause()))
       }
-    }))
+    })
   }
 }

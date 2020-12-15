@@ -4,8 +4,7 @@ import java.io.File
 
 import io.github.leibnizhu.vertxearch.utils.{Article, Constants}
 import io.vertx.core.json.JsonObject
-import io.vertx.scala.core
-import io.vertx.scala.core.Vertx
+import io.vertx.core.{AsyncResult, Vertx}
 import org.scalatest.{AsyncFlatSpec, BeforeAndAfterAll}
 import org.slf4j.LoggerFactory
 
@@ -25,17 +24,17 @@ class ArticleTest extends AsyncFlatSpec with BeforeAndAfterAll {
   private val dataPath = config.getString("articlePath")
 
   override def beforeAll: Unit = {
-    val contextConfig = context.config().get
+    val contextConfig = context.config()
     config.forEach(e => contextConfig.put(e.getKey, e.getValue))
-    Constants.init(context)
+    Constants.init(config)
   }
 
   "将Article对象写入到文件" should "不报错" in {
     Future.sequence(source.map(article => {
       val promise = Promise[Boolean]()
-      article.writeToFile(tried => {
+      article.writeToFile(vertx, tried => {
         log.info(s"写入文章(ID=${article.id})成功")
-        promise.complete(Try(tried.isSuccess))
+        promise.complete(Try(tried.succeeded()))
       })
       promise.future
     })).map(list => assert(list.forall(_ == true)))
@@ -45,19 +44,17 @@ class ArticleTest extends AsyncFlatSpec with BeforeAndAfterAll {
     Future.sequence(source.map(originArticle => {
       val file = new File(dataPath, s"${originArticle.id}.txt")
       val promise = Promise[Boolean]()
-      Article.fromFile(file, core.Future.future[Article]().setHandler(ar => {
+      Article.fromFile(vertx, file, (ar: AsyncResult[Article]) => {
         log.info("读取文件" + file.getName + "成功")
         val article = ar.result()
         promise.complete(Try(ar.succeeded() && article.content == originArticle.toLowerCase.content))
-      }))
+      })
       promise.future
     })).map(list => assert(list.forall(_ == true)))
   }
 
   override def afterAll: Unit = {
     log.info("Article测试准备关闭Vertx")
-    val closeFuture = vertx.closeFuture()
-    while (!closeFuture.isCompleted) {}
-    log.info("Article测试已经关闭Vertx")
+    vertx.close().onComplete((ar: AsyncResult[Void]) => log.info("Article测试已经关闭Vertx"))
   }
 }

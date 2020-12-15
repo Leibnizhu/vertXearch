@@ -6,36 +6,31 @@ import io.github.leibnizhu.vertxearch.utils.EventbusRequestUtil.Method.{ADD_ARTI
 import io.github.leibnizhu.vertxearch.utils.EventbusRequestUtil._
 import io.github.leibnizhu.vertxearch.utils.ResponseUtil.{failSearch, successSearch}
 import io.github.leibnizhu.vertxearch.utils.{Article, Constants, EventbusRequestUtil}
+import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
-import io.vertx.lang.scala.ScalaVerticle
-import io.vertx.scala.core.Future
-import io.vertx.scala.core.eventbus.Message
+import io.vertx.core.{AbstractVerticle, AsyncResult, Promise}
 import org.slf4j.LoggerFactory
 
-import scala.concurrent.Promise
 import scala.util.{Failure, Success, Try}
 
-class EventbusSearchVerticle extends ScalaVerticle {
+class EventbusSearchVerticle extends AbstractVerticle {
   private val log = LoggerFactory.getLogger(getClass)
   private var searchEngine: Engine = _
 
-  override def startFuture(): concurrent.Future[_] = {
-    val promise = Promise[Unit]()
-    Constants.init(ctx)
+  override def start(startPromise: Promise[Void]): Unit = {
     val eventbusAddress = config.getString("eventbusAddress", "search") //EventBus监听地址
-    vertx.eventBus.consumer[JsonObject](eventbusAddress).handler(handleEventbusMessage) //启动监听Eventbus
-    this.searchEngine = new EngineImpl(indexPath, articlePath)
-      .init(Future.future[Unit]().setHandler(ar =>
+    vertx.eventBus.consumer[JsonObject](eventbusAddress, msg => handleEventbusMessage(msg)) //启动监听Eventbus
+    this.searchEngine = new EngineImpl(vertx, indexPath, articlePath)
+      .init((ar: AsyncResult[Unit]) =>
         if (ar.succeeded())
-          promise.success(())
+          startPromise.complete()
         else
-          promise.failure(ar.cause())
-      ))
-    promise.future
+          startPromise.fail(ar.cause())
+      )
   }
 
   override def stop(): Unit = {
-    searchEngine.stop(Future.future().setHandler(res => log.info("搜索引擎关闭" + (if (res.succeeded) "成功" else "失败"))))
+    searchEngine.stop((ar: AsyncResult[Unit]) => log.info("搜索引擎关闭" + (if (ar.succeeded()) "成功" else "失败")))
     super.stop()
   }
 
@@ -69,7 +64,7 @@ class EventbusSearchVerticle extends ScalaVerticle {
     val keyword = EventbusRequestUtil.keywordFromRequest(msgBody)
     val length = EventbusRequestUtil.lengthFromRequest(msgBody)
     searchEngine.search(keyword, length, //防止传入的长度值小于等于0
-      Future.future[List[Article]]().setHandler(ar => {
+      (ar: AsyncResult[List[Article]]) => {
         val costTime = System.currentTimeMillis() - startTime
         if (ar.succeeded()) {
           val results = ar.result()
@@ -80,6 +75,6 @@ class EventbusSearchVerticle extends ScalaVerticle {
           log.error(s"查询关键词'$keyword'失败, 耗时${costTime}毫秒", cause)
           msg.fail(500, failSearch(cause, costTime).toString)
         }
-      }))
+      })
   }
 }

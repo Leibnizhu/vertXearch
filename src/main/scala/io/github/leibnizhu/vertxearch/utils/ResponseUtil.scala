@@ -1,6 +1,6 @@
 package io.github.leibnizhu.vertxearch.utils
 
-import io.vertx.lang.scala.json.JsonObject
+import io.vertx.core.json.JsonObject
 
 import scala.collection.JavaConverters._
 
