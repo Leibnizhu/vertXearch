@@ -11,17 +11,17 @@
 默认的打包配置里使用http查询接口的Verticle.  
 
 ## 使用
-本项目已提交到[Maven中央仓库](https://search.maven.org/#artifactdetails%7Cio.github.leibnizhu%7Cvertxearch%7C0.0.1%7Cjar), 如果只需要使用Eventbus查询接口,可以直接使用maven依赖即可:  
+本项目已提交到[Maven中央仓库](https://search.maven.org/#artifactdetails%7Cio.github.leibnizhu%7Cvertxearch%7C0.0.2%7Cjar), 如果只需要使用Eventbus查询接口,可以直接使用maven依赖即可:  
 ```xml
 <dependency>
     <groupId>io.github.leibnizhu</groupId>
     <artifactId>vertXearch</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 或gradle:
 ```groovy
-compile 'io.github.leibnizhu:vertXearch:0.0.1'
+compile 'io.github.leibnizhu:vertXearch:0.0.2'
 ```
 此时可以跳过下面的[编译打包](#编译打包)步骤.  
 2019-07注:仓库中版本较旧
@@ -65,7 +65,7 @@ Gradle默认任务会将其复制到项目根目录, 运行时可以直接读取
 **注1**: 默认配置的main类是用于启动http查询接口的,如果要启动eventbus查询接口的,请自行deploy.    
 **注2**: 配置文件路径可选, 默认读取当前目录下的`config.json`文件,如不存在, 则使用默认值(详见`Constants`代码)   
 ```bash
-java -jar target/vertxearch-0.0.1-fat.jar [/path/to/config.json]
+java -jar target/vertxearch-0.0.2-fat.jar [/path/to/config.json]
 ```
 提供了一个简单的查询页面: [http://localhost:8083/static/](http://localhost:8083/static/)
 
