@@ -17,7 +17,7 @@
         <scala.version>2.12.4</scala.version>
         <scala-test.version>3.0.5</scala-test.version>
         <lucene.version>7.2.0</lucene.version>
-        <vertx.version>4.3.8</vertx.version>
+        <vertx.version>4.5.22</vertx.version>
         <slf4j.version>1.7.24</slf4j.version>
         <logback.version>1.5.19</logback.version>
         <java.version>1.8</java.version>
